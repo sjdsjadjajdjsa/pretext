@@ -6,10 +6,9 @@ welcome.
 ## Setup
 
 ```sh
-uv venv --python 3.12 .venv
-uv pip install -e ".[dev]"
-.venv/bin/pytest
-.venv/bin/ruff check src tests
+uv sync --extra dev
+uv run pytest
+uv run ruff check src tests
 ```
 
 The suite is offline: `httpx.MockTransport` in `tests/test_client.py` and a stubbed

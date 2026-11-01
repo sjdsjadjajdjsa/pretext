@@ -2,20 +2,26 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from enum import Enum
 from importlib import resources
 from pathlib import Path
 
 import typer
+from pydantic import ValidationError
 
 from . import __version__, render
-from .client import Client
+from .client import Client, _content_of, extract_json
 from .models import (
     ENV_PREFIX,
     Channel,
     ConfigError,
     PretextError,
+    Profile,
+    ProfileError,
+    Simulation,
+    _format_validation,
     load_profile,
     profile_from_json,
     resolve_settings,
@@ -50,10 +56,37 @@ class OutputFormat(str, Enum):
     markdown = "markdown"
 
 
-def _read_profile(path: Path, out):
+def _read_profile(path: Path):
     if str(path) == "-":
         return profile_from_json(sys.stdin.read())
     return load_profile(path)
+
+
+def _read_response(path: Path) -> tuple[Profile | None, Simulation]:
+    """Read a saved response: our own export, a bare simulation, or a chat body."""
+
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise ProfileError(f"cannot read response {path}: {exc.strerror or exc}") from exc
+    except json.JSONDecodeError as exc:
+        raise ProfileError(f"response {path} is not JSON: {exc}") from exc
+
+    if not isinstance(document, dict):
+        raise ProfileError(f"response {path} must be a JSON object")
+
+    profile = None
+    if isinstance(document.get("profile"), dict):
+        profile = Profile.model_validate(document["profile"])
+
+    raw = document.get("simulation", document)
+    if isinstance(document.get("choices"), list):
+        raw = extract_json(_content_of(document))
+
+    try:
+        return profile, Simulation.model_validate(raw)
+    except ValidationError as exc:
+        raise ProfileError(_format_validation(exc, prefix=f"invalid response {path}")) from exc
 
 
 def _warnings(settings, profile=None) -> list[str]:
@@ -73,7 +106,7 @@ def _warnings(settings, profile=None) -> list[str]:
 @app.command()
 def generate(
     profile: Path = typer.Argument(
-        ..., metavar="PROFILE", help="YAML profile, or - to read JSON from stdin."
+        None, metavar="[PROFILE]", help="YAML profile, or - to read JSON from stdin."
     ),
     base_url: str = typer.Option(
         None, "--base-url", "-u", help=f"API root [{ENV_PREFIX}BASE_URL]."
@@ -98,6 +131,9 @@ def generate(
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Resolve config and print the prompt; call nothing."
     ),
+    response_file: Path = typer.Option(
+        None, "--from-file", help="Render a saved response instead of calling the API."
+    ),
     usage: bool = typer.Option(False, "--usage", help="Print token usage to stderr."),
     no_color: bool = typer.Option(False, "--no-color", help="Disable ANSI color."),
 ) -> None:
@@ -106,11 +142,26 @@ def generate(
     out = render.console(no_color=no_color)
     err = render.console(no_color=no_color, stderr=True)
 
+    if profile is None and response_file is None:
+        err.print("[bold red]error[/bold red] pass a PROFILE or --from-file")
+        raise typer.Exit(2)
+
+    saved = None
     try:
+        if response_file is not None:
+            saved_profile, saved = _read_response(response_file)
+            if profile is None:
+                if saved_profile is None:
+                    raise ProfileError(
+                        f"response {response_file} has no profile; pass a PROFILE too"
+                    )
+                prof = saved_profile
+        if profile is not None:
+            prof = _read_profile(profile)
         settings = resolve_settings(
             base_url=base_url,
             model=model,
-            api_key=api_key,
+            api_key=api_key or ("unused" if saved is not None else None),
             temperature=temperature,
             timeout=timeout,
             retries=retries,
@@ -118,7 +169,6 @@ def generate(
             seed=seed,
             dotenv=Path.cwd() / ".env",
         )
-        prof = _read_profile(profile, out)
     except PretextError as exc:
         err.print(f"[bold red]error[/bold red] {exc}")
         raise typer.Exit(1) from exc
@@ -137,17 +187,21 @@ def generate(
     render.render_warnings(warnings, err)
 
     client = Client(settings)
-    try:
-        with err.status("[cyan]requesting simulation…[/cyan]", spinner="dots"):
-            simulation = client.generate(
-                prof, channel=channel.value if channel else None, extra=extra
-            )
-    except PretextError as exc:
-        err.print(f"[bold red]error[/bold red] {exc}")
-        raise typer.Exit(1) from exc
-    except KeyboardInterrupt:
-        err.print("[yellow]interrupted[/yellow]")
-        raise typer.Exit(130) from None
+    if saved is not None:
+        simulation = saved
+        err.print(f"[dim]replayed {response_file}[/dim]")
+    else:
+        try:
+            with err.status("[cyan]requesting simulation…[/cyan]", spinner="dots"):
+                simulation = client.generate(
+                    prof, channel=channel.value if channel else None, extra=extra
+                )
+        except PretextError as exc:
+            err.print(f"[bold red]error[/bold red] {exc}")
+            raise typer.Exit(1) from exc
+        except KeyboardInterrupt:
+            err.print("[yellow]interrupted[/yellow]")
+            raise typer.Exit(130) from None
 
     if usage:
         tokens = client.last_usage or {}
@@ -186,7 +240,7 @@ def validate(profile: Path = typer.Argument(..., metavar="PROFILE")) -> None:
 
     out = render.console()
     try:
-        prof = _read_profile(profile, out)
+        prof = _read_profile(profile)
     except PretextError as exc:
         render.console(stderr=True).print(f"[bold red]invalid[/bold red] {exc}")
         raise typer.Exit(1) from exc

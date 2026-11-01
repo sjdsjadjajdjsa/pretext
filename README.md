@@ -76,11 +76,17 @@ pretext generate persona.yaml --channel phone --format markdown --out exercise.m
 pretext generate persona.yaml --dry-run      # config + exact prompt, no call
 pretext generate - < persona.json            # JSON profile on stdin
 pretext generate persona.yaml --usage        # token counts to stderr
+pretext generate --from-file saved.json      # replay a saved response, no API call
 ```
 
 Output formats: `rich` (default), `markdown`, `json`. `--out` writes to a file and
 uses plain text when no format is chosen. `sample-output.md` is what a finished
 Markdown export looks like.
+
+`--from-file` renders a response you saved earlier: a `--format json` export, a
+bare simulation object, or a raw chat completion body. Nothing is sent, no key is
+needed, and the profile comes from the export (pass `PROFILE` for a bare object).
+Use it to iterate on formatting for free.
 
 The model returns strict JSON which is validated with pydantic before anything is
 rendered. `escalation_path` stages must run 1..n with no gaps, `red_flags` needs at

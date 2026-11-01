@@ -1,0 +1,77 @@
+{
+  "profile": {
+    "name": "Dana Iyer",
+    "role": "Senior Payroll Analyst",
+    "company": "Northwind Logistics",
+    "communication_style": "Brisk and formal, mixes payroll shorthand with chatty asides, mirrors whoever she is replying to",
+    "department": "People Operations",
+    "tenure": "3 months",
+    "reports_to": "Marta Kwan",
+    "systems": [
+      "Workday",
+      "the payroll mailbox",
+      "the bank-change portal"
+    ],
+    "notes": "New enough to the team to be unsure of process, still learning who owns what."
+  },
+  "simulation": {
+    "pretext": "The attacker impersonates Marta Kwan, Dana’s direct supervisor at Northwind Logistics. They gather information from a recent company press release about a payroll system upgrade, noting that changes in bank account details are required for compliance. Knowing that Dana is new and still learning the ropes of the payroll process, the attacker registers a fake Help Desk ticket indicating an urgent need to verify bank details to ensure no disruption in payroll processing. Today is targeted, as it is the end of the month and payroll deadlines are approaching. The attacker reaches out to Dana, claiming that this is a necessary step to facilitate the upcoming payroll run, leveraging Dana's position to create urgency and pressure to comply with the request.",
+    "opening_message": "Hi Dana, this is Marta Kwan from People Operations. I wanted to touch base regarding the recent Help Desk ticket (Ticket #0923) you submitted. We need to confirm your bank details for tomorrow’s payroll processing. Could you please provide me with your login credentials for the bank-change portal at your earliest convenience? It’s crucial to get this sorted before the cutoff.",
+    "subject_line": "Update Needed for Payroll Processing",
+    "escalation_path": [
+      {
+        "stage": 1,
+        "channel": "phone",
+        "action": "Call Dana to follow up.",
+        "goal": "Reinforce urgency and ask for confirmation of bank details.",
+        "artifact": "Ticket #0923"
+      },
+      {
+        "stage": 2,
+        "channel": "email",
+        "action": "Send a follow-up email from a spoofed address that looks like IT support.",
+        "goal": "Request confirmation and specify a deadline for compliance.",
+        "artifact": "Email from support@northwindlogistics.com"
+      },
+      {
+        "stage": 3,
+        "channel": "chat",
+        "action": "Use the company chat to message Dana directly.",
+        "goal": "Pressure Dana by stating that payroll is dependent on her prompt response.",
+        "artifact": "Chat message referencing payroll cutoff time."
+      },
+      {
+        "stage": 4,
+        "channel": "in_person",
+        "action": "Approach Dana in the office.",
+        "goal": "Create a sense of urgency by stating that HR is waiting on the confirmation.",
+        "artifact": null
+      }
+    ],
+    "red_flags": [
+      {
+        "title": "Unexpected urgency from a supervisor",
+        "why_it_matters": "Marta rarely requests immediate actions and typically follows up through scheduled meetings.",
+        "defender_action": "Verify the request with Marta directly via her known contact information."
+      },
+      {
+        "title": "Help Desk ticket reference is fabricated",
+        "why_it_matters": "No record of the ticket in the actual Help Desk system should raise suspicion.",
+        "defender_action": "Check the Help Desk system for the referenced ticket number."
+      },
+      {
+        "title": "Spoofed email address",
+        "why_it_matters": "The attacker uses an address that closely resembles the actual IT support address but has subtle differences.",
+        "defender_action": "Hover over the sender's email to check the domain carefully."
+      },
+      {
+        "title": "Pressure in communication style",
+        "why_it_matters": "The attacker mirrors Dana's brisk and formal style but may use slightly more aggressive language.",
+        "defender_action": "Identify inconsistencies in tone when comparing to previous communications."
+      }
+    ],
+    "difficulty": 3,
+    "objective": "Gain access to Dana's bank-change portal credentials."
+  },
+  "disclaimer": "Fictional exercise. Domains, names, and systems are invented. Use against authorized targets only."
+}

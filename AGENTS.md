@@ -39,6 +39,9 @@ profile.yaml ──load_profile──> Profile ──prompt.build_payload_messag
 | `cli.py` | Typer commands: `generate`, `validate`, `example`, `config` |
 | `data/example-profile.yaml` | Fictional persona used by `pretext example` and the README |
 
+`tests/fixtures/profiles/` holds four personas covering distinct roles; the prompt
+tests run every one and assert the payload carries the profile fields.
+
 `resolve_settings` is the single place precedence lives: flag, then `PRETEXT_*`
 env, then `./.env`, then `OPENAI_API_KEY`, then defaults. Every new option needs a
 row there, an env name, a CLI flag, and a `Settings` field, else it silently never
@@ -119,6 +122,12 @@ monkeypatches `time.sleep`; add cases there rather than hitting the network.
 without HTTP. Cover the failure path (retry exhaustion, schema violation, bad
 key) whenever you touch the client or schema. `tests/test_models.py` owns
 precedence and validation edge cases.
+
+`--from-file` bypasses the API entirely for rendering work. It accepts our own
+export, a bare simulation, or a chat body, and needs no key; the profile is taken
+from the export or must be passed explicitly. `tests/fixtures/responses/dana.json`
+is a real capture used by the replay and render tests. Keep a fixture in sync when
+you change the schema, or those tests are worthless.
 
 `sample-output.md` is a real `gpt-4o-mini` run through OpenRouter, kept as the
 quality bar. Prompt changes should be compared against it; a run costs well under

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import ClassVar
 
 import pytest
@@ -202,3 +203,71 @@ def test_usage_flag_prints_tokens(profile):
     result = run("generate", profile, "--api-key", "sk-x", "--usage", "--format", "json")
     assert result.exit_code == 0
     assert "tokens:" in result.output
+
+
+FIXTURE = Path(__file__).parent / "fixtures" / "responses" / "dana.json"
+
+
+def test_replay_wrapped_response(profile, tmp_path):
+    result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(FIXTURE), "-f", "markdown"])
+    assert result.exit_code == 0
+    assert "Social-engineering simulation" in result.stdout
+    assert "Escalation path" in result.stdout
+    assert StubClient.calls == []
+    assert "replayed" in result.output
+
+
+def test_replay_needs_no_key(tmp_path):
+    result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(FIXTURE), "-f", "json"])
+    assert result.exit_code == 0
+    assert json.loads(result.stdout)["simulation"]["difficulty"]
+
+
+def test_replay_requires_profile_when_bare(tmp_path):
+    data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    bare = tmp_path / "bare.json"
+    bare.write_text(json.dumps(data["simulation"]), encoding="utf-8")
+    result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(bare)])
+    assert result.exit_code == 1
+    assert "pass a PROFILE too" in result.output
+
+
+def test_replay_bare_with_profile_argument(tmp_path, profile):
+    data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    bare = tmp_path / "bare.json"
+    bare.write_text(json.dumps(data["simulation"]), encoding="utf-8")
+    result = RUNNER.invoke(cli.app, ["generate", str(profile), "--from-file", str(bare)])
+    assert result.exit_code == 0
+    assert "Escalation path" in result.stdout
+
+
+def test_replay_chat_body(tmp_path):
+    data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    body = {"choices": [{"message": {"content": json.dumps(data["simulation"])}}]}
+    wrapped = tmp_path / "body.json"
+    wrapped.write_text(json.dumps(body), encoding="utf-8")
+    result = RUNNER.invoke(cli.app, ["generate", str(FIXTURE.parent.parent / "profiles" / "helpdesk.yaml"),
+                                     "--from-file", str(wrapped)])
+    assert result.exit_code == 0
+
+
+def test_replay_rejects_non_json(tmp_path):
+    bad = tmp_path / "bad.json"
+    bad.write_text("nope", encoding="utf-8")
+    result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(bad)])
+    assert result.exit_code == 1
+    assert "not JSON" in result.output
+
+
+def test_replay_rejects_schema_violation(tmp_path):
+    bad = tmp_path / "bad.json"
+    bad.write_text(json.dumps({"pretext": "short"}), encoding="utf-8")
+    result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(bad)])
+    assert result.exit_code == 1
+    assert "invalid response" in result.output
+
+
+def test_no_profile_and_no_file_is_usage_error():
+    result = RUNNER.invoke(cli.app, ["generate"])
+    assert result.exit_code == 2
+    assert "pass a PROFILE or --from-file" in result.output

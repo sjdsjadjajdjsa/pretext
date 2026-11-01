@@ -16,7 +16,7 @@ exported to Markdown/JSON for a training packet.
 ## Install
 
 ```sh
-uv venv && uv pip install -e .
+uv sync --extra dev
 ```
 
 Python 3.10+.
@@ -113,7 +113,7 @@ print(simulation.red_flags[0].defender_action)
 ```sh
 uv pip install -e ".[dev]"
 pytest
-ruff check src tests
+uv run ruff check src tests
 ```
 
 Tests use `httpx.MockTransport`, so the suite needs no network and no key.

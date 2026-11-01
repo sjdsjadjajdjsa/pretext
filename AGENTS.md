@@ -7,14 +7,14 @@ OpenAI-compatible chat completions endpoint.
 ## Setup and commands
 
 ```sh
-uv venv --python 3.12 .venv
-uv pip install -e ".[dev]"
-.venv/bin/pytest              # suite is offline, httpx.MockTransport only
-.venv/bin/ruff check src tests
-.venv/bin/pretext --help
+uv sync --extra dev
+uv run pytest                 # suite is offline, httpx.MockTransport only
+uv run ruff check src tests
+uv run pretext --help
 ```
 
-`uv` is the only supported installer; the venv is at `.venv` and is not on PATH.
+`uv` is the only supported installer and `uv.lock` is committed; run tooling through
+`uv run` so CI and your machine resolve the same versions.
 There is no build step and no Makefile. `pytest` must pass with no network and no
 API key, keep it that way.
 

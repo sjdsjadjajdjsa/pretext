@@ -50,10 +50,12 @@ complete Markdown export; [`docs/demo.png`](docs/demo.png) is the terminal view.
 ## Install
 
 ```sh
-uv sync --extra dev        # or: pip install -e .
+uvx pretext-sim generate persona.yaml     # no install
+pipx install pretext-sim                  # or a permanent command
 ```
 
-Python 3.10+. Use `uv run pretext` unless a venv is active.
+Python 3.10+. The distribution is `pretext-sim`; the command is `pretext`. For the
+source tree: `uv sync --extra dev` then `uv run pretext`.
 
 ## Quickstart
 

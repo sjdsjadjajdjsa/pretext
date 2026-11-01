@@ -4,6 +4,10 @@ All notable changes. This project follows semantic versioning.
 
 ## Unreleased
 
+- Distribution renamed `pretext-sim` (the `pretext` name belongs to PreTeXt); the
+  command stays `pretext`
+- PyPI publish workflow on release, via trusted publishing
+
 - `docs/running-an-exercise.md`: authorization, delivery, scoring, debrief
 - Model corpus with structural invariant tests, and clear errors when a thinking
   model runs out of output budget

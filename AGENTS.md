@@ -128,10 +128,14 @@ the social preview (404 on every version), so it is uploaded in Settings → Gen
 
 CI (`.github/workflows/ci.yml`) runs ruff, pytest, and a dry-run smoke on Python
 3.10-3.13; the local equivalents are `ruff check src tests` and `pytest`. Test
-files are exempt from E501, source files are not. Releasing means bumping `__version__` in `__init__.py` and `version` in
+files are exempt from E501, source files are not.
+
+Releasing means bumping `__version__` in `__init__.py` and `version` in
 `pyproject.toml`, adding a `CHANGELOG.md` section (the tag must match the version),
-then tagging `vX.Y.Z`, which triggers `release.yml`. `SECURITY.md` and `CONTRIBUTING.md` are
-user-facing; changes to the schema or CLI need a line there when behaviour moves.
+then tagging `vX.Y.Z`, which triggers `release.yml`. Publishing that release hands
+off to `publish.yml`, which uses trusted publishing with environment `pypi`; it stays
+red until the trusted publisher exists on PyPI. `SECURITY.md` and `CONTRIBUTING.md`
+are user-facing; changes to the schema or CLI need a line there when behaviour moves.
 
 ## Tests
 

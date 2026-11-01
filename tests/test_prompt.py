@@ -66,3 +66,20 @@ def test_channel_and_extra_are_appended():
     content = build_payload_messages(profile, channel="phone", extra="keep it brief")[1]["content"]
     assert "phone channel" in content
     assert "Additional direction: keep it brief" in content
+
+
+def test_schema_keys_match_model_fields():
+    import re
+
+    from pretext.models import EscalationStep, RedFlag, Simulation
+
+    schema = SYSTEM_PROMPT[SYSTEM_PROMPT.index("{"):SYSTEM_PROMPT.index("\n}\n\nRules")]
+    top = set(re.findall(r'^  "(\w+)":', schema, re.MULTILINE))
+    assert top == set(Simulation.model_fields)
+
+    step = schema[schema.index("escalation_path"):schema.index("red_flags")]
+    assert set(re.findall(r'^      "(\w+)":', step, re.MULTILINE)) == set(
+        EscalationStep.model_fields
+    )
+    flags = schema[schema.index("red_flags"):]
+    assert set(re.findall(r'"(\w+)":', flags)) == set(RedFlag.model_fields)

@@ -102,3 +102,27 @@ def test_json_stays_complete_with_sections(pair):
     body = json.loads(render.to_json(simulation, profile, sections=("pretext",)))
     assert body["sections"] == ["pretext"]
     assert body["simulation"]["red_flags"]
+
+
+def test_sections_skip_opening_keeps_tail(pair):
+    profile, simulation = pair
+    out = render.console(no_color=True, width=100)
+    with out.capture() as captured:
+        render.render_simulation(simulation, profile, out, sections=("escalation", "red_flags"))
+    text = captured.get()
+    assert "Opening message" not in text
+    assert "Escalation path" in text
+    assert "Red flags for defenders" in text
+
+
+def test_seed_row_and_warnings(pair):
+    from pretext.models import Settings
+
+    out = render.console(no_color=True, width=100)
+    settings = Settings(base_url="http://x.test/v1", model="m", api_key="k", seed=9)
+    with out.capture() as captured:
+        render.render_settings(settings, out)
+        render.render_warnings(["one", "two"], out)
+    text = captured.get()
+    assert "Seed" in text
+    assert "! one" in text and "! two" in text

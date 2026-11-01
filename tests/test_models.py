@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from pretext.models import (
     ConfigError,
+    Profile,
     ProfileError,
     Simulation,
     load_profile,
@@ -182,3 +183,42 @@ def test_opening_message_headers_stripped():
 def test_opening_message_without_headers_untouched():
     sim = Simulation.model_validate(simulation_payload())
     assert sim.opening_message.startswith("Hi Dana")
+
+
+def test_blank_to_none_handles_none():
+    assert Profile(name="Ana", role="Analyst", company="Cobalt", communication_style="Blunt", notes=None).notes is None
+
+
+def test_stage_coerced_from_string():
+    from pretext.models import EscalationStep
+
+    assert EscalationStep.model_validate(
+        {"stage": "2", "channel": "email", "action": "Send the thing.", "goal": "Open thread"}
+    ).stage == 2
+
+
+def test_dotenv_skips_comments_and_junk(tmp_path, monkeypatch):
+    monkeypatch.delenv("PRETEXT_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    dotenv = write(tmp_path, "# note\n\nbroken\nPRETEXT_API_KEY='quoted'\n", ".env")
+    assert resolve_settings(dotenv=dotenv).api_key == "quoted"
+
+
+def test_profile_empty_file(tmp_path):
+    with pytest.raises(ProfileError, match="empty"):
+        load_profile(write(tmp_path, ""))
+
+
+def test_profile_not_a_mapping(tmp_path):
+    with pytest.raises(ProfileError, match="mapping"):
+        load_profile(write(tmp_path, "- a\n- b\n"))
+
+
+def test_profile_invalid_yaml(tmp_path):
+    with pytest.raises(ProfileError, match="invalid YAML"):
+        load_profile(write(tmp_path, "name: [unclosed\n"))
+
+
+def test_profile_from_json_invalid():
+    with pytest.raises(ProfileError, match="invalid profile JSON"):
+        profile_from_json('{"name": "x"}')

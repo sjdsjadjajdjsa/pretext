@@ -295,3 +295,58 @@ def test_sections_rejects_unknown(profile):
     result = run("generate", profile, "--api-key", "sk-x", "--sections", "opening,bogus")
     assert result.exit_code == 2
     assert "bogus" in flat(result)
+
+
+def test_profile_from_stdin():
+    result = RUNNER.invoke(cli.app, ["validate", "-"], input=json.dumps({
+        "name": "Ana Lima", "role": "Analyst", "company": "Cobalt",
+        "communication_style": "Blunt",
+    }))
+    assert result.exit_code == 0
+    assert "Profile OK" in flat_out(result)
+
+
+def test_warnings_http_default_host(tmp_path):
+    path = tmp_path / "p.yaml"
+    path.write_text(PROFILE_YAML.replace("Northwind Logistics", "Acme"), encoding="utf-8")
+    result = run("generate", path, "--api-key", "sk-x", "--base-url", "http://api.test/v1",
+                 "--temperature", "1.5")
+    assert result.exit_code == 0
+    out = flat(result)
+    assert "not HTTPS" in out
+    assert "generic" in out
+    assert "temperature above 1.2" in out
+
+
+def test_keyboard_interrupt_exits_130(profile):
+    StubClient.error = KeyboardInterrupt()
+    result = run("generate", profile, "--api-key", "sk-x")
+    assert result.exit_code == 130
+    assert "interrupted" in flat(result)
+
+
+def test_replay_missing_file(tmp_path):
+    result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(tmp_path / "gone.json")])
+    assert result.exit_code == 1
+    assert "cannot read response" in flat(result)
+
+
+def test_replay_non_object(tmp_path):
+    bad = tmp_path / "list.json"
+    bad.write_text("[1]", encoding="utf-8")
+    result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(bad)])
+    assert result.exit_code == 1
+    assert "JSON object" in flat(result)
+
+
+def test_main_entrypoint(monkeypatch):
+    called = {}
+    monkeypatch.setattr(cli, "app", lambda: called.setdefault("hit", True))
+    cli.main()
+    assert called["hit"]
+
+
+def test_local_endpoint_warning(profile):
+    result = run("generate", profile, "--api-key", "sk-x", "--base-url", "http://localhost:9/v1", "--dry-run")
+    assert result.exit_code == 0
+    assert "endpoint is local" in flat(result)

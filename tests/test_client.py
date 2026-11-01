@@ -207,3 +207,136 @@ def test_usage_captured():
     client = client_with(handler)
     client.generate(Profile(**PROFILE))
     assert client.last_usage["total_tokens"] == 15
+
+
+def test_content_of_rejects_bad_shapes():
+    from pretext.client import _content_of
+
+    for body in ({}, {"choices": []}, {"choices": [{}]}, {"choices": [{"message": {}}]}, {"choices": "x"}):
+        with pytest.raises(APIError):
+            _content_of(body)
+
+
+def test_backoff_prefers_retry_after():
+    from pretext.client import _backoff
+
+    assert _backoff(1, "2") == 2.0
+    assert _backoff(3, "999") == 30.0
+    assert 0.3 < _backoff(1, "nonsense") <= 0.65
+
+
+def test_decode_rejects_non_json():
+    with pytest.raises(APIError, match="non-JSON"):
+        client_with(lambda r: httpx.Response(200, text="<html>")).generate(_profile())
+
+
+def test_decode_rejects_non_object():
+    with pytest.raises(APIError, match="non-object"):
+        client_with(lambda r: httpx.Response(200, json=[1, 2])).generate(_profile())
+
+
+def test_error_text_shapes():
+    def mk(**kwargs):
+        return httpx.Response(400, **kwargs)
+
+    from pretext.client import _error_text
+
+    assert _error_text(mk(json={"error": {"message": "boom"}})) == "boom"
+    assert _error_text(mk(json={"error": "flat"})) == "flat"
+    assert _error_text(mk(json={"message": "hello"})) == "hello"
+    assert _error_text(mk(text="raw text")) == "raw text"
+    assert _error_text(mk()) == "<empty body>"
+
+
+def test_seed_sent_when_set():
+    seen = {}
+
+    def handler(request):
+        seen.update(json.loads(request.content))
+        return chat_response(json.dumps(PAYLOAD))
+
+    client_with(handler, seed=7).generate(_profile())
+    assert seen["seed"] == 7
+
+
+def test_seed_omitted_by_default():
+    seen = {}
+
+    def handler(request):
+        seen.update(json.loads(request.content))
+        return chat_response(json.dumps(PAYLOAD))
+
+    client_with(handler).generate(_profile())
+    assert "seed" not in seen
+
+
+def _profile():
+    from pretext.models import Profile
+
+    return Profile(**PROFILE)
+
+
+def test_extract_json_survives_junk():
+    import random
+    import string
+
+    rng = random.Random(7)
+    for _ in range(300):
+        text = "".join(rng.choice(string.printable) for _ in range(rng.randint(0, 120)))
+        try:
+            result = extract_json(text)
+        except APIError:
+            continue
+        assert isinstance(result, dict)
+
+
+def test_extract_json_fenced_with_prose():
+    fenced = "Here you go:\n```json\n" + json.dumps(PAYLOAD) + "\n```\nEnjoy."
+    assert extract_json(fenced)["difficulty"] == 3
+
+
+def test_extract_json_deep_nesting_still_parses():
+    nested = json.dumps({**PAYLOAD, "objective": "{" * 3 + "x" + "}" * 3})
+    assert extract_json(nested)["objective"].startswith("{")
+
+
+def test_timeout_then_success(monkeypatch):
+    monkeypatch.setattr("pretext.client.time.sleep", lambda _: None)
+    calls = {"n": 0}
+
+    def handler(request):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise httpx.ReadTimeout("slow", request=request)
+        return chat_response(json.dumps(PAYLOAD))
+
+    assert client_with(handler, retries=1).generate(_profile()).difficulty == 3
+
+
+def test_connect_error_then_success(monkeypatch):
+    monkeypatch.setattr("pretext.client.time.sleep", lambda _: None)
+    calls = {"n": 0}
+
+    def handler(request):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise httpx.ConnectError("refused", request=request)
+        return chat_response(json.dumps(PAYLOAD))
+
+    assert client_with(handler, retries=1).generate(_profile()).difficulty == 3
+
+
+def test_error_text_non_object_body():
+    from pretext.client import _error_text
+
+    assert _error_text(httpx.Response(400, json=[1, 2])) == "[1, 2]"
+
+
+def test_connect_error_exhausted(monkeypatch):
+    monkeypatch.setattr("pretext.client.time.sleep", lambda _: None)
+
+    def handler(request):
+        raise httpx.ConnectError("refused", request=request)
+
+    with pytest.raises(APIError, match="connection failed"):
+        client_with(handler, retries=1).generate(_profile())

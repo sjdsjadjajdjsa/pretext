@@ -7,7 +7,7 @@ welcome.
 
 ```sh
 uv sync --extra dev
-uv run pytest
+uv run pytest --cov=pretext   # CI fails under 97% coverage
 uv run ruff check src tests
 ```
 

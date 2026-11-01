@@ -13,7 +13,9 @@ All notable changes. This project follows semantic versioning.
   sending address, distinct non-adjacent channels, and a new prop per stage
 - Fixture personas, prompt invariant tests, and render tests over a captured response
 - Tests pin terminal width; the suite is deterministic across widths
-- OpenRouter-tested; `uv.lock` committed and Dependabot moved to the `uv` ecosystem
+- OpenRouter-tested across four models; `uv.lock` committed and Dependabot moved to
+  the `uv` ecosystem
+- Coverage gate at 97% (currently 99%) and fuzz coverage for JSON extraction
 
 ## 0.1.0
 

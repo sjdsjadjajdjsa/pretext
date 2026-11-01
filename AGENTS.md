@@ -139,6 +139,10 @@ from the export or must be passed explicitly. `tests/fixtures/responses/dana.jso
 is a real capture used by the replay and render tests. Keep a fixture in sync when
 you change the schema, or those tests are worthless.
 
+Cross-provider smoke: gpt-4o-mini, gemini-2.5-flash, claude-haiku-4.5 and
+llama-3.3-70b all held the JSON contract. Re-check one non-OpenAI model after a
+prompt change; prose quality varies far more than schema adherence.
+
 `sample-output.md` is a real `gpt-4o-mini` run through OpenRouter, kept as the
 quality bar. Prompt changes should be compared against it; a run costs well under
 a cent, so use `--usage` and a real endpoint instead of guessing.

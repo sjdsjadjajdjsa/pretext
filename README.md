@@ -153,7 +153,7 @@ Diagnostics go to stderr, keeping stdout pipeable: `pretext generate p.yaml -f j
 ## Development
 
 ```sh
-uv run pytest              # offline: MockTransport and a stubbed client
+uv run pytest --cov=pretext # offline: MockTransport and a stubbed client
 uv run ruff check src tests
 ```
 
@@ -167,6 +167,11 @@ contributors. `CONTRIBUTING.md` covers process; security reports follow `SECURIT
 
 Pre-1.0: the CLI surface and JSON schema can still move between minor versions;
 `CHANGELOG.md` records what changed.
+
+Output has been checked against gpt-4o-mini, gemini-2.5-flash, claude-haiku-4.5 and
+llama-3.3-70b through OpenRouter; all four held the JSON contract and used distinct
+channels. Weak models will still need prompt tuning, and the suite covers the
+pipeline rather than any one model's prose.
 
 Not planned: delivery to targets, click tracking, an SMTP client. pretext writes the
 exercise; sending stays your job.

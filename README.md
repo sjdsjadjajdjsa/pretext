@@ -1,154 +1,176 @@
+<div align="center">
+
 # pretext
 
-Generate labeled social-engineering simulations you can hand to trainees.
+**Turn a one-page persona into a runnable social-engineering exercise.**
 
-`pretext` turns a one-page persona profile into a complete exercise: a pretext
-narrative, a usable opening message, a staged escalation path, and a set of red
-flags written for defenders. Output is validated and rendered in the terminal, or
-exported to Markdown/JSON for a training packet.
+Narrative, opening message, escalation path, and the red flags defenders should
+have caught, generated, validated, then rendered where you need it.
 
-> **Authorized training only.** Everything here is a fictional exercise. Domains,
-> names, and systems produced by the model are invented unless you say otherwise.
-> Nothing is sent to a target, so run exercises against your own people only after
-> your security team has agreed to it, and keep the malware-free "no click" promise
-> honest by checking lures before sending.
+[![ci](https://github.com/sjdsjadjajdjsa/pretext/actions/workflows/ci.yml/badge.svg)](https://github.com/sjdsjadjajdjsa/pretext/actions/workflows/ci.yml)
+![python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)
+![license](https://img.shields.io/badge/license-MIT-blue.svg)
+
+<img src="docs/demo.png" alt="pretext rendering a simulation in the terminal" width="820">
+
+</div>
+
+> **Authorized training only.** Everything produced is a fictional exercise.
+> Domains, names, and systems are invented unless you say otherwise. pretext never
+> sends anything to a target; it writes the material and the analysis. Run an
+> exercise against your own people only after your security team agrees to it, and
+> check the lures before sending.
+
+## Why
+
+Security-awareness decks are generic ("you receive an email with a typo"), so staff
+learn to spot a template rather than a technique. A useful exercise is grounded in
+one role at one company: what that person controls, who they trust, and what an
+operator would do next.
+
+Doing that by hand costs an afternoon per persona. `pretext` takes a YAML profile
+and produces the exercise in one call, defender's side included, so training value
+does not depend on whoever wrote the scenario remembering to add it.
+
+## What you get
+
+| Section | Content |
+| ------- | ------- |
+| Pretext narrative | The operation, attacker-side: harvested detail, forged artifact, why contact lands today |
+| Opening message | Usable verbatim, in the sender's voice, carrying the sending address and one lure |
+| Escalation path | 3-6 stages across channels, each handing over a new prop or introducing a new person |
+| Red flags | Observable tells tied to this exercise, each with a defender action, including one only clear in hindsight |
+
+Every output carries a disclaimer. [`sample-output.md`](sample-output.md) is a
+complete Markdown export; [`docs/demo.png`](docs/demo.png) is the terminal view.
 
 ## Install
 
 ```sh
-uv sync --extra dev
+uv sync --extra dev        # or: pip install -e .
 ```
 
-Python 3.10+.
+Python 3.10+. Use `uv run pretext` unless a venv is active.
 
-## Configure
-
-Any OpenAI-compatible chat completions endpoint works. Configuration resolves in
-this order, first hit wins:
-
-1. Flags: `--base-url`, `--model`, `--api-key`
-2. Environment: `PRETEXT_BASE_URL`, `PRETEXT_MODEL`, `PRETEXT_API_KEY`,
-   `PRETEXT_TEMPERATURE`, `PRETEXT_TIMEOUT`, `PRETEXT_RETRIES`,
-   `PRETEXT_MAX_TOKENS`, `PRETEXT_SEED`
-3. `.env` in the working directory, same names
-4. `OPENAI_API_KEY` for the key, then the defaults
-   `https://api.openai.com/v1` and `gpt-4o-mini`
-
-`pretext config` shows the resolved values with the key masked.
+## Quickstart
 
 ```sh
-export PRETEXT_BASE_URL=http://localhost:11434/v1   # e.g. a local proxy
-export PRETEXT_MODEL=gpt-oss:20b
-export PRETEXT_API_KEY=unused
+pretext example -o persona.yaml            # fictional profile to edit
+pretext validate persona.yaml              # schema check, no API call
+pretext generate persona.yaml --dry-run    # resolved config + exact prompt, no call
+pretext generate persona.yaml -f markdown -o exercise.md
 ```
+
+Point it at any OpenAI-compatible chat completions endpoint with a flag, env var, or
+`.env`:
+
+```sh
+export PRETEXT_API_KEY=sk-...
+export PRETEXT_BASE_URL=http://localhost:11434/v1   # local proxy, if you prefer
+export PRETEXT_MODEL=gpt-oss:20b
+```
+
+`pretext config` shows what resolves, with the key masked.
 
 ## Profile
 
-A profile is YAML. Only `name`, `role`, `company`, and `communication_style` are
-required; `department`, `tenure`, `reports_to`, `systems`, and `notes` sharpen the
-result and are all optional.
+Only four fields are required (`name`, `role`, `company`, `communication_style`).
+The rest sharpen the result.
 
 ```yaml
 name: Dana Iyer
 role: Senior Payroll Analyst
 company: Northwind Logistics
+communication_style: Brisk and formal, mixes payroll shorthand with chatty asides
 department: People Operations
 tenure: 3 months
 reports_to: Marta Kwan
-communication_style: Brisk and formal, mixes payroll shorthand with chatty asides, mirrors whoever she is replying to
-systems:
-  - Workday
-  - the payroll mailbox
-  - the bank-change portal
-notes: New enough to the team to be unsure of process, still learning who owns what.
+systems: [Workday, the payroll mailbox]
+notes: New enough to the team to be unsure of process.
 ```
 
-All of these are fictional.
+Optional: `department`, `tenure`, `reports_to`, `systems`, `notes`. Unknown keys are
+rejected so typos surface early. Fixture personas live in
+[`tests/fixtures/profiles`](tests/fixtures/profiles).
 
-`pretext example` prints this profile; `pretext validate persona.yaml` checks yours
-before you spend a request.
+## Command reference
 
-## Run
+| Command | Purpose |
+| ------- | ------- |
+| `generate PROFILE` | Produce one exercise |
+| `validate PROFILE` | Validate without calling the API |
+| `example` | Print the bundled fictional profile |
+| `config` | Show resolved settings, key masked |
 
-```sh
-pretext generate persona.yaml
-pretext generate persona.yaml --channel phone --format markdown --out exercise.md
-pretext generate persona.yaml --dry-run      # config + exact prompt, no call
-pretext generate - < persona.json            # JSON profile on stdin
-pretext generate persona.yaml --usage        # token counts to stderr
-pretext generate --from-file saved.json      # replay a saved response, no API call
+Flags on `generate`:
+
+| Flag | Effect |
+| ---- | ------ |
+| `--channel` | Force the opening channel (email, phone, sms, chat, in_person, linkedin) |
+| `--extra` | Extra direction for the model |
+| `--format` | `rich` (default), `markdown`, `json` |
+| `--out` | Write to a file; plain text unless a format is chosen |
+| `--sections` | Render only some of `pretext,opening,escalation,red_flags` |
+| `--from-file` | Replay a saved response; no API call, no key |
+| `--dry-run` | Print resolved config and prompt, send nothing |
+| `--usage` | Token counts on stderr |
+| `--base-url`, `--model`, `--api-key` | Override endpoint settings |
+| `--temperature`, `--max-tokens`, `--timeout`, `--retries`, `--seed` | Sampling and transport |
+| `--no-color` | Plain terminal output |
+
+Exit codes: `0` success, `1` bad profile/config/API/schema failure, `2` usage error,
+`130` interrupted.
+
+`--from-file` accepts a `--format json` export, a bare simulation object, or a raw
+chat completion body, so formatting work stays free and offline.
+
+## Configuration
+
+First hit wins:
+
+1. Flags (`--base-url`, `--model`, `--api-key`)
+2. Environment: the same names under `PRETEXT_` (`PRETEXT_API_KEY`, `PRETEXT_MODEL`, ...)
+3. `.env` in the working directory
+4. `OPENAI_API_KEY` for the key, then `https://api.openai.com/v1` and `gpt-4o-mini`
+
+The key is never printed and never written to output.
+
+## How it works
+
+```
+profile.yaml ─> Profile ─> prompt ─> POST /chat/completions ─> extract JSON
+                                                                    │
+     rich | markdown | json  <─ render <─ validate <────────────────┘
 ```
 
-Output formats: `rich` (default), `markdown`, `json`. `--out` writes to a file and
-uses plain text when no format is chosen. `sample-output.md` is what a finished
-Markdown export looks like.
+Model output is untrusted. It is parsed out of fences or prose, validated against a
+strict pydantic schema, and only then rendered. Escalation stages must run 1..n with
+no gaps, `red_flags` needs at least two entries, and unknown keys are rejected, so a
+loose model fails loudly instead of producing a half-filled exercise.
 
-`--from-file` renders a response you saved earlier: a `--format json` export, a
-bare simulation object, or a raw chat completion body. Nothing is sent, no key is
-needed, and the profile comes from the export (pass `PROFILE` for a bare object).
-Use it to iterate on formatting for free.
-
-The model returns strict JSON which is validated with pydantic before anything is
-rendered. `escalation_path` stages must run 1..n with no gaps, `red_flags` needs at
-least two entries, and the client rejects unknown keys, so a loosely prompted model
-fails loudly instead of producing a half-filled exercise.
-
-## Exit codes
-
-| Code | Meaning |
-| ---- | ------- |
-| 0 | success, including `--dry-run` |
-| 1 | bad profile, bad config, API failure, validation failure |
-| 2 | CLI usage error |
-| 130 | interrupted |
-
-## Library use
-
-```python
-from pathlib import Path
-from pretext import Client, load_profile, resolve_settings
-
-profile = load_profile(Path("persona.yaml"))
-settings = resolve_settings(base_url="http://localhost:11434/v1", model="local", api_key="x")
-simulation = Client(settings).generate(profile, channel="email")
-print(simulation.red_flags[0].defender_action)
-```
+Diagnostics go to stderr, keeping stdout pipeable: `pretext generate p.yaml -f json | jq`.
 
 ## Development
 
 ```sh
-uv pip install -e ".[dev]"
-pytest
+uv run pytest              # offline: MockTransport and a stubbed client
 uv run ruff check src tests
 ```
 
-Tests use `httpx.MockTransport`, so the suite needs no network and no key.
-`--dry-run` and `pretext validate` are the fast ways to check a prompt change.
+The suite needs no key. `conftest.py` chdirs each test into a temp directory so your
+own `.env` cannot leak in, and pins the terminal width so Rich reflow stays stable.
 
-## Contributing
-
-Issues and pull requests are welcome. `CONTRIBUTING.md` covers setup and the
-rules that keep output validated and stdout pipeable. Run `pretext --version`
-when filing a bug. Security reports follow `SECURITY.md`.
-
-Fixtures must stay fictional: no real company names, domains, or keys in tests
-or the example profile.
+`AGENTS.md` documents the layout, the hardening rules, and the traps for agent
+contributors. `CONTRIBUTING.md` covers process; security reports follow `SECURITY.md`.
 
 ## Status
 
-0.1.0, pre-1.0. The CLI surface and JSON schema can still move between minor
-versions; `CHANGELOG.md` records what changed. Planned work: a batch mode over a
-profile directory, a `--json-schema` dump for prompt debugging, and an offline
-`--from-file` renderer that replays a saved model response.
+Pre-1.0: the CLI surface and JSON schema can still move between minor versions;
+`CHANGELOG.md` records what changed.
 
-Not planned: sending anything to a target, click tracking, or an SMTP client.
-pretext produces the text and the analysis; delivery stays your job.
+Not planned: delivery to targets, click tracking, an SMTP client. pretext writes the
+exercise; sending stays your job.
 
-## Configuration notes
+## License
 
-- `response_format: json_object` is sent on every request. If your endpoint rejects
-  it, the response is still parsed wherever the object appears, so most proxies work.
-- Retries cover 408/409/425/429/5xx and transport errors with jittered exponential
-  backoff; `Retry-After` is honored up to 30s.
-- The API key is never written to output and is masked in `pretext config`.
-- Temperature above 1.2 tends to break the JSON contract; the CLI warns you.
+MIT. See [`LICENSE`](LICENSE).

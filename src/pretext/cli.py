@@ -134,6 +134,9 @@ def generate(
     response_file: Path = typer.Option(
         None, "--from-file", help="Render a saved response instead of calling the API."
     ),
+    sections: str = typer.Option(
+        None, "--sections", help="Comma list of: pretext, opening, escalation, red_flags."
+    ),
     usage: bool = typer.Option(False, "--usage", help="Print token usage to stderr."),
     no_color: bool = typer.Option(False, "--no-color", help="Disable ANSI color."),
 ) -> None:
@@ -141,6 +144,17 @@ def generate(
 
     out = render.console(no_color=no_color)
     err = render.console(no_color=no_color, stderr=True)
+
+    selected = render.SECTIONS
+    if sections is not None:
+        selected = tuple(part.strip() for part in sections.split(",") if part.strip())
+        unknown = [part for part in selected if part not in render.SECTIONS]
+        if unknown or not selected:
+            err.print(
+                f"[bold red]error[/bold red] unknown section(s): {', '.join(unknown) or 'none'}; "
+                f"choose from {', '.join(render.SECTIONS)}"
+            )
+            raise typer.Exit(2)
 
     if profile is None and response_file is None:
         err.print("[bold red]error[/bold red] pass a PROFILE or --from-file")
@@ -212,9 +226,9 @@ def generate(
         )
 
     if fmt is OutputFormat.json:
-        body = render.to_json(simulation, prof)
+        body = render.to_json(simulation, prof, sections=selected)
     elif fmt is OutputFormat.markdown:
-        body = render.to_markdown(simulation, prof)
+        body = render.to_markdown(simulation, prof, sections=selected)
     else:
         body = None
 
@@ -222,7 +236,7 @@ def generate(
         if body is None:
             recording = render.console(no_color=True, width=100)
             with recording.capture() as captured:
-                render.render_simulation(simulation, prof, recording)
+                render.render_simulation(simulation, prof, recording, sections=selected)
             body = captured.get()
         out_file.write_text(body, encoding="utf-8")
         err.print(f"wrote {out_file}")
@@ -231,7 +245,7 @@ def generate(
     if body is not None:
         typer.echo(body)
     else:
-        render.render_simulation(simulation, prof, out)
+        render.render_simulation(simulation, prof, out, sections=selected)
 
 
 @app.command()

@@ -35,7 +35,8 @@ profile.yaml ──load_profile──> Profile ──prompt.build_payload_messag
 | `models.py` | `Profile`, `Simulation`, `Settings`; error classes; env/flag/`.env` resolution; YAML + JSON loaders |
 | `prompt.py` | System prompt carrying the JSON schema, and the user prompt |
 | `client.py` | httpx POST, retry policy, JSON extraction, response validation |
-| `render.py` | Rich panels, markdown/JSON serializers, `DISCLAIMER` |
+| `render.py` | Rich panels (section-gated), markdown/JSON serializers, `DISCLAIMER` |
+| `docs/` | README demo and social preview, both generated, never hand-edited |
 | `cli.py` | Typer commands: `generate`, `validate`, `example`, `config` |
 | `data/example-profile.yaml` | Fictional persona used by `pretext example` and the README |
 
@@ -101,6 +102,15 @@ resolves.
   benign in tests.
 - Everything in the example profile is fictional. Keep real vendor names out of
   the prompt's sample output.
+
+## Docs media
+
+`docs/demo.png` comes from `docs/demo.svg`, which is a `Console(record=True)` export
+of `render_simulation` with `sections=("pretext", "opening", "escalation")` over the
+Dana fixture. Convert with `rsvg-convert -z 1.2`, then `magick -trim +repage -strip`.
+Regenerate after any render change or the README advertises stale output.
+`docs/social.png` is a hand-written SVG; GitHub has no API for the social preview,
+so it is uploaded in Settings.
 
 ## Repo hygiene
 

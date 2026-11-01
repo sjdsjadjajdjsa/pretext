@@ -2,6 +2,19 @@
 
 All notable changes. This project follows semantic versioning.
 
+## 0.2.0
+
+- `--from-file` replays a saved export, bare simulation, or chat body with no API
+  call and no key
+- `--sections` renders a subset of the exercise
+- `--usage` reports token counts on stderr
+- Opening-message validator strips `Subject:`/`From:` header lines the model repeats
+- Prompt now forbids the attacker impersonating the persona, requires an in-body
+  sending address, distinct non-adjacent channels, and a new prop per stage
+- Fixture personas, prompt invariant tests, and render tests over a captured response
+- Tests pin terminal width; the suite is deterministic across widths
+- OpenRouter-tested; `uv.lock` committed and Dependabot moved to the `uv` ecosystem
+
 ## 0.1.0
 
 First release.

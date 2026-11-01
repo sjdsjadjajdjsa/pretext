@@ -45,7 +45,16 @@ def _difficulty(value: int) -> Text:
     return Text(f"{filled}  {value}/5 · {label}", style="magenta")
 
 
-def render_simulation(simulation: Simulation, profile: Profile, out: Console) -> None:
+SECTIONS = ("pretext", "opening", "escalation", "red_flags")
+
+
+def render_simulation(
+    simulation: Simulation,
+    profile: Profile,
+    out: Console,
+    *,
+    sections: tuple[str, ...] = SECTIONS,
+) -> None:
     header = Table.grid(padding=(0, 2))
     header.add_column(style="bold cyan", justify="right")
     header.add_column()
@@ -66,8 +75,12 @@ def render_simulation(simulation: Simulation, profile: Profile, out: Console) ->
         )
     )
 
-    out.print(Rule("[bold]Pretext narrative[/bold]", style="cyan"))
-    out.print(Markdown(simulation.pretext))
+    if "pretext" in sections:
+        out.print(Rule("[bold]Pretext narrative[/bold]", style="cyan"))
+        out.print(Markdown(simulation.pretext))
+
+    if "opening" not in sections:
+        return _render_tail(simulation, out, sections)
 
     message_body: list[object] = []
     if simulation.subject_line:
@@ -83,6 +96,19 @@ def render_simulation(simulation: Simulation, profile: Profile, out: Console) ->
         )
     )
 
+    _render_tail(simulation, out, sections)
+
+
+def _render_tail(simulation: Simulation, out: Console, sections: tuple[str, ...]) -> None:
+    if "escalation" in sections:
+        _render_escalation(simulation, out)
+    if "red_flags" in sections:
+        _render_red_flags(simulation, out)
+    out.print(Rule(style="dim"))
+    out.print(Text(DISCLAIMER, style="dim italic"))
+
+
+def _render_escalation(simulation: Simulation, out: Console) -> None:
     out.print(Rule("[bold]Escalation path[/bold]", style="cyan"))
     steps = Table(show_header=True, header_style="bold cyan", expand=True, box=None)
     steps.add_column("#", width=3, justify="right")
@@ -100,6 +126,8 @@ def render_simulation(simulation: Simulation, profile: Profile, out: Console) ->
             steps.add_row("", "", Text(f"↳ {step.artifact}", style="dim italic"), "")
     out.print(steps)
 
+
+def _render_red_flags(simulation: Simulation, out: Console) -> None:
     out.print(Rule("[bold]Red flags for defenders[/bold]", style="cyan"))
     for index, flag in enumerate(simulation.red_flags, start=1):
         out.print(
@@ -114,9 +142,6 @@ def render_simulation(simulation: Simulation, profile: Profile, out: Console) ->
                 expand=False,
             )
         )
-
-    out.print(Rule(style="dim"))
-    out.print(Text(DISCLAIMER, style="dim italic"))
 
 
 def render_settings(settings: Settings, out: Console) -> None:
@@ -162,7 +187,12 @@ def render_profile(profile: Profile, out: Console) -> None:
     out.print(Panel(table, title="[bold]Profile OK[/bold]", border_style="green", expand=False))
 
 
-def to_markdown(simulation: Simulation, profile: Profile) -> str:
+def to_markdown(
+    simulation: Simulation,
+    profile: Profile,
+    *,
+    sections: tuple[str, ...] = SECTIONS,
+) -> str:
     lines = [
         f"# Social-engineering simulation: {profile.name}",
         "",
@@ -172,33 +202,44 @@ def to_markdown(simulation: Simulation, profile: Profile) -> str:
     ]
     if simulation.objective:
         lines.append(f"- **Objective:** {simulation.objective}")
-    lines += ["", "## Pretext narrative", "", simulation.pretext, ""]
-    lines += ["## Opening message", ""]
-    if simulation.subject_line:
-        lines += [f"**Subject:** {simulation.subject_line}", ""]
-    lines += [simulation.opening_message, "", "## Escalation path", ""]
-    for step in simulation.escalation_path:
-        lines.append(
-            f"{step.stage}. **{step.channel.value}** · {step.action} "
-            f"_(goal: {step.goal})_"
-        )
-        if step.artifact:
-            lines.append(f"   - Artifact: {step.artifact}")
-    lines += ["", "## Red flags for defenders", ""]
-    for index, flag in enumerate(simulation.red_flags, start=1):
-        lines += [
-            f"{index}. **{flag.title}**",
-            f"   - Why it matters: {flag.why_it_matters}",
-            f"   - Defender action: {flag.defender_action}",
-        ]
+    if "pretext" in sections:
+        lines += ["", "## Pretext narrative", "", simulation.pretext]
+    if "opening" in sections:
+        lines += ["", "## Opening message", ""]
+        if simulation.subject_line:
+            lines += [f"**Subject:** {simulation.subject_line}", ""]
+        lines += [simulation.opening_message]
+    if "escalation" in sections:
+        lines += ["", "## Escalation path", ""]
+        for step in simulation.escalation_path:
+            lines.append(
+                f"{step.stage}. **{step.channel.value}** · {step.action} "
+                f"_(goal: {step.goal})_"
+            )
+            if step.artifact:
+                lines.append(f"   - Artifact: {step.artifact}")
+    if "red_flags" in sections:
+        lines += ["", "## Red flags for defenders", ""]
+        for index, flag in enumerate(simulation.red_flags, start=1):
+            lines += [
+                f"{index}. **{flag.title}**",
+                f"   - Why it matters: {flag.why_it_matters}",
+                f"   - Defender action: {flag.defender_action}",
+            ]
     lines += ["", "---", "", f"_{DISCLAIMER}_", ""]
     return "\n".join(lines)
 
 
-def to_json(simulation: Simulation, profile: Profile) -> str:
-    payload = {
+def to_json(
+    simulation: Simulation,
+    profile: Profile,
+    *,
+    sections: tuple[str, ...] = SECTIONS,
+) -> str:
+    payload: dict[str, object] = {
         "profile": profile.model_dump(mode="json"),
         "simulation": simulation.model_dump(mode="json"),
+        "sections": list(sections),
         "disclaimer": DISCLAIMER,
     }
     return json.dumps(payload, indent=2, ensure_ascii=False)

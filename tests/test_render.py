@@ -75,3 +75,30 @@ def test_narrow_terminal_does_not_crash(pair):
     with out.capture() as captured:
         render.render_simulation(simulation, profile, out)
     assert simulation.escalation_path[0].action.split()[0] in captured.get()
+
+
+def test_sections_filter_rich(pair):
+    profile, simulation = pair
+    out = render.console(no_color=True, width=100)
+    with out.capture() as captured:
+        render.render_simulation(simulation, profile, out, sections=("opening",))
+    text = captured.get()
+    assert "Opening message" in text
+    assert "Escalation path" not in text
+    assert "Pretext narrative" not in text
+    assert render.DISCLAIMER in " ".join(text.split())
+
+
+def test_sections_filter_markdown(pair):
+    profile, simulation = pair
+    body = render.to_markdown(simulation, profile, sections=("pretext", "escalation"))
+    assert "## Pretext narrative" in body
+    assert "## Escalation path" in body
+    assert "## Opening message" not in body
+
+
+def test_json_stays_complete_with_sections(pair):
+    profile, simulation = pair
+    body = json.loads(render.to_json(simulation, profile, sections=("pretext",)))
+    assert body["sections"] == ["pretext"]
+    assert body["simulation"]["red_flags"]

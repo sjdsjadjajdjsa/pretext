@@ -282,3 +282,16 @@ def test_no_profile_and_no_file_is_usage_error():
     result = RUNNER.invoke(cli.app, ["generate"])
     assert result.exit_code == 2
     assert "pass a PROFILE or --from-file" in flat(result)
+
+
+def test_sections_flag(profile):
+    result = run("generate", profile, "--api-key", "sk-x", "--sections", "opening", "-f", "markdown")
+    assert result.exit_code == 0
+    assert "## Opening message" in result.stdout
+    assert "## Pretext" not in result.stdout
+
+
+def test_sections_rejects_unknown(profile):
+    result = run("generate", profile, "--api-key", "sk-x", "--sections", "opening,bogus")
+    assert result.exit_code == 2
+    assert "bogus" in flat(result)

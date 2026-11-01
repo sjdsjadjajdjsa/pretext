@@ -103,13 +103,31 @@ def test_settings_bad_temperature():
 
 
 STEPS = [
-    {"stage": 1, "channel": "email", "action": "Send a fake invoice query.", "goal": "Open a thread"},
-    {"stage": 2, "channel": "phone", "action": "Call to confirm the invoice.", "goal": "Get a callback"},
+    {
+        "stage": 1,
+        "channel": "email",
+        "action": "Send a fake invoice query.",
+        "goal": "Open a thread",
+    },
+    {
+        "stage": 2,
+        "channel": "phone",
+        "action": "Call to confirm the invoice.",
+        "goal": "Get a callback",
+    },
 ]
 
 FLAGS = [
-    {"title": "Odd domain", "why_it_matters": "Vendor mail came from elsewhere.", "defender_action": "Check the domain"},
-    {"title": "Urgency", "why_it_matters": "Deadline is same day.", "defender_action": "Verify out of band"},
+    {
+        "title": "Odd domain",
+        "why_it_matters": "Vendor mail came from elsewhere.",
+        "defender_action": "Check the domain",
+    },
+    {
+        "title": "Urgency",
+        "why_it_matters": "Deadline is same day.",
+        "defender_action": "Verify out of band",
+    },
 ]
 
 
@@ -155,7 +173,9 @@ def test_channel_enum_enforced():
 def test_settings_numeric_from_dotenv(tmp_path, monkeypatch):
     for key in ("PRETEXT_RETRIES", "PRETEXT_TEMPERATURE"):
         monkeypatch.delenv(key, raising=False)
-    dotenv = write(tmp_path, "PRETEXT_API_KEY=k\nPRETEXT_RETRIES=1\nPRETEXT_TEMPERATURE=0.2\n", ".env")
+    dotenv = write(
+        tmp_path, "PRETEXT_API_KEY=k\nPRETEXT_RETRIES=1\nPRETEXT_TEMPERATURE=0.2\n", ".env"
+    )
     settings = resolve_settings(dotenv=dotenv)
     assert settings.retries == 1
     assert settings.temperature == 0.2
@@ -186,15 +206,23 @@ def test_opening_message_without_headers_untouched():
 
 
 def test_blank_to_none_handles_none():
-    assert Profile(name="Ana", role="Analyst", company="Cobalt", communication_style="Blunt", notes=None).notes is None
+    assert (
+        Profile(
+            name="Ana", role="Analyst", company="Cobalt", communication_style="Blunt", notes=None
+        ).notes
+        is None
+    )
 
 
 def test_stage_coerced_from_string():
     from pretext.models import EscalationStep
 
-    assert EscalationStep.model_validate(
-        {"stage": "2", "channel": "email", "action": "Send the thing.", "goal": "Open thread"}
-    ).stage == 2
+    assert (
+        EscalationStep.model_validate(
+            {"stage": "2", "channel": "email", "action": "Send the thing.", "goal": "Open thread"}
+        ).stage
+        == 2
+    )
 
 
 def test_dotenv_skips_comments_and_junk(tmp_path, monkeypatch):
@@ -245,7 +273,9 @@ def test_provider_sets_base_url():
 
 
 def test_base_url_flag_beats_provider():
-    settings = resolve_settings(provider="venice", base_url="http://x.test/v1", api_key="k", dotenv=None)
+    settings = resolve_settings(
+        provider="venice", base_url="http://x.test/v1", api_key="k", dotenv=None
+    )
     assert str(settings.base_url).startswith("http://x.test")
 
 

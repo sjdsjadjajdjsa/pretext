@@ -14,6 +14,19 @@ All notable changes. This project follows semantic versioning.
 - `--dry-run --out` writes the prompt instead of ignoring `--out`
 - Verified against Venice (venice-uncensored-1-2, qwen3-235b-a22b-instruct)
 
+## 0.3.0
+
+- `doctor` diagnoses configuration, TLS, reachability, model availability and JSON
+  mode, with `--full` for schema adherence
+- `batch` generates one exercise per profile and reports failures via the exit code
+- `--provider` preset for openai, openrouter, venice, ollama and lmstudio
+- `schema` dumps the JSON Schema of the output contract
+- `--dry-run --out` writes the prompt
+- Thinking models that exhaust their budget now say so instead of returning empty
+- Long objectives trimmed like artifacts
+- mypy, `ruff format`, a 97% coverage gate and a release workflow in CI
+- Model corpus with structural invariant tests
+
 ## 0.2.0
 
 - `--from-file` replays a saved export, bare simulation, or chat body with no API

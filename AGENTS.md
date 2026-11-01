@@ -128,9 +128,9 @@ so it is uploaded in Settings.
 
 CI (`.github/workflows/ci.yml`) runs ruff, pytest, and a dry-run smoke on Python
 3.10-3.13; the local equivalents are `ruff check src tests` and `pytest`. Test
-files are exempt from E501, source files are not. Releasing means bumping
-`__version__` in `__init__.py`, `version` in `pyproject.toml`, adding a
-`CHANGELOG.md` entry, then `uv build`. `SECURITY.md` and `CONTRIBUTING.md` are
+files are exempt from E501, source files are not. Releasing means bumping `__version__` in `__init__.py` and `version` in
+`pyproject.toml`, adding a `CHANGELOG.md` section (the tag must match the version),
+then tagging `vX.Y.Z`, which triggers `release.yml`. `SECURITY.md` and `CONTRIBUTING.md` are
 user-facing; changes to the schema or CLI need a line there when behaviour moves.
 
 ## Tests

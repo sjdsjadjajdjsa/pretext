@@ -180,6 +180,12 @@ loose model fails loudly instead of producing a half-filled exercise.
 
 Diagnostics go to stderr, keeping stdout pipeable: `pretext generate p.yaml -f json | jq`.
 
+## Releasing
+
+Tagging `vX.Y.Z` runs `release.yml`: it checks the tag against `__version__`, gates
+on lint, format, types and tests, builds, then publishes a release whose notes come
+from `CHANGELOG.md`. Version bumps and changelog sections land before the tag.
+
 ## Development
 
 ```sh

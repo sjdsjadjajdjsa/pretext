@@ -25,12 +25,31 @@ PAYLOAD = {
     "subject_line": "Invoice 4471",
     "objective": "Get the bank details changed",
     "escalation_path": [
-        {"stage": 1, "channel": "email", "action": "Send a fake invoice query.", "goal": "Open a thread"},
-        {"stage": 2, "channel": "phone", "action": "Call to confirm the invoice.", "goal": "Get a callback", "artifact": "Callback number"},
+        {
+            "stage": 1,
+            "channel": "email",
+            "action": "Send a fake invoice query.",
+            "goal": "Open a thread",
+        },
+        {
+            "stage": 2,
+            "channel": "phone",
+            "action": "Call to confirm the invoice.",
+            "goal": "Get a callback",
+            "artifact": "Callback number",
+        },
     ],
     "red_flags": [
-        {"title": "Odd domain", "why_it_matters": "Vendor mail came from elsewhere.", "defender_action": "Check the domain"},
-        {"title": "Urgency", "why_it_matters": "Deadline is same day.", "defender_action": "Verify out of band"},
+        {
+            "title": "Odd domain",
+            "why_it_matters": "Vendor mail came from elsewhere.",
+            "defender_action": "Check the domain",
+        },
+        {
+            "title": "Urgency",
+            "why_it_matters": "Deadline is same day.",
+            "defender_action": "Verify out of band",
+        },
     ],
     "difficulty": 4,
 }
@@ -257,8 +276,15 @@ def test_replay_chat_body(tmp_path):
     body = {"choices": [{"message": {"content": json.dumps(data["simulation"])}}]}
     wrapped = tmp_path / "body.json"
     wrapped.write_text(json.dumps(body), encoding="utf-8")
-    result = RUNNER.invoke(cli.app, ["generate", str(FIXTURE.parent.parent / "profiles" / "helpdesk.yaml"),
-                                     "--from-file", str(wrapped)])
+    result = RUNNER.invoke(
+        cli.app,
+        [
+            "generate",
+            str(FIXTURE.parent.parent / "profiles" / "helpdesk.yaml"),
+            "--from-file",
+            str(wrapped),
+        ],
+    )
     assert result.exit_code == 0
 
 
@@ -285,7 +311,9 @@ def test_no_profile_and_no_file_is_usage_error():
 
 
 def test_sections_flag(profile):
-    result = run("generate", profile, "--api-key", "sk-x", "--sections", "opening", "-f", "markdown")
+    result = run(
+        "generate", profile, "--api-key", "sk-x", "--sections", "opening", "-f", "markdown"
+    )
     assert result.exit_code == 0
     assert "## Opening message" in result.stdout
     assert "## Pretext" not in result.stdout
@@ -298,10 +326,18 @@ def test_sections_rejects_unknown(profile):
 
 
 def test_profile_from_stdin():
-    result = RUNNER.invoke(cli.app, ["validate", "-"], input=json.dumps({
-        "name": "Ana Lima", "role": "Analyst", "company": "Cobalt",
-        "communication_style": "Blunt",
-    }))
+    result = RUNNER.invoke(
+        cli.app,
+        ["validate", "-"],
+        input=json.dumps(
+            {
+                "name": "Ana Lima",
+                "role": "Analyst",
+                "company": "Cobalt",
+                "communication_style": "Blunt",
+            }
+        ),
+    )
     assert result.exit_code == 0
     assert "Profile OK" in flat_out(result)
 
@@ -309,8 +345,16 @@ def test_profile_from_stdin():
 def test_warnings_http_default_host(tmp_path):
     path = tmp_path / "p.yaml"
     path.write_text(PROFILE_YAML.replace("Northwind Logistics", "Acme"), encoding="utf-8")
-    result = run("generate", path, "--api-key", "sk-x", "--base-url", "http://api.test/v1",
-                 "--temperature", "1.5")
+    result = run(
+        "generate",
+        path,
+        "--api-key",
+        "sk-x",
+        "--base-url",
+        "http://api.test/v1",
+        "--temperature",
+        "1.5",
+    )
     assert result.exit_code == 0
     out = flat(result)
     assert "not HTTPS" in out
@@ -347,7 +391,9 @@ def test_main_entrypoint(monkeypatch):
 
 
 def test_local_endpoint_warning(profile):
-    result = run("generate", profile, "--api-key", "sk-x", "--base-url", "http://localhost:9/v1", "--dry-run")
+    result = run(
+        "generate", profile, "--api-key", "sk-x", "--base-url", "http://localhost:9/v1", "--dry-run"
+    )
     assert result.exit_code == 0
     assert "endpoint is local" in flat(result)
 
@@ -368,7 +414,10 @@ def test_batch_writes_one_file_per_profile(tmp_path):
     result = run("batch", FIXTURE_DIR, "--out-dir", target, "--api-key", "sk-x")
     assert result.exit_code == 0
     assert sorted(p.name for p in target.glob("*.md")) == [
-        "exec-assistant.md", "finance.md", "helpdesk.md", "new-hire.md",
+        "exec-assistant.md",
+        "finance.md",
+        "helpdesk.md",
+        "new-hire.md",
     ]
     assert "4/4" in flat(result)
 
@@ -409,7 +458,9 @@ def test_batch_not_a_directory(tmp_path):
 
 
 def test_batch_sections_validated(tmp_path):
-    result = run("batch", FIXTURE_DIR, "--out-dir", tmp_path, "--api-key", "sk-x", "--sections", "bogus")
+    result = run(
+        "batch", FIXTURE_DIR, "--out-dir", tmp_path, "--api-key", "sk-x", "--sections", "bogus"
+    )
     assert result.exit_code == 2
     assert "bogus" in flat(result)
 
@@ -442,7 +493,8 @@ def doctor(monkeypatch):
 
 def test_doctor_all_pass(doctor):
     result = RUNNER.invoke(
-        cli.app, ["doctor", "--api-key", "k", "--base-url", "https://x.test/v1", "--model", "test-model"]
+        cli.app,
+        ["doctor", "--api-key", "k", "--base-url", "https://x.test/v1", "--model", "test-model"],
     )
     assert result.exit_code == 0
     assert "test-model is served" in flat_out(result)
@@ -466,7 +518,8 @@ def test_doctor_bad_json(doctor):
 
 def test_doctor_plain_http_warns(doctor):
     result = RUNNER.invoke(
-        cli.app, ["doctor", "--api-key", "k", "--base-url", "http://x.test/v1", "--model", "test-model"]
+        cli.app,
+        ["doctor", "--api-key", "k", "--base-url", "http://x.test/v1", "--model", "test-model"],
     )
     assert "not HTTPS" in flat_out(result)
 
@@ -479,7 +532,17 @@ def test_doctor_missing_key(doctor):
 
 def test_doctor_full(doctor):
     result = RUNNER.invoke(
-        cli.app, ["doctor", "--api-key", "k", "--base-url", "https://x.test/v1", "--model", "test-model", "--full"]
+        cli.app,
+        [
+            "doctor",
+            "--api-key",
+            "k",
+            "--base-url",
+            "https://x.test/v1",
+            "--model",
+            "test-model",
+            "--full",
+        ],
     )
     assert result.exit_code == 0
     assert "schema" in flat_out(result)

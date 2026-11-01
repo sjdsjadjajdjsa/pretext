@@ -17,12 +17,30 @@ PROFILE = {
 }
 
 STEPS = [
-    {"stage": 1, "channel": "email", "action": "Send a fake invoice query.", "goal": "Open a thread"},
-    {"stage": 2, "channel": "phone", "action": "Call to confirm the invoice.", "goal": "Get a callback"},
+    {
+        "stage": 1,
+        "channel": "email",
+        "action": "Send a fake invoice query.",
+        "goal": "Open a thread",
+    },
+    {
+        "stage": 2,
+        "channel": "phone",
+        "action": "Call to confirm the invoice.",
+        "goal": "Get a callback",
+    },
 ]
 FLAGS = [
-    {"title": "Odd domain", "why_it_matters": "Vendor mail came from elsewhere.", "defender_action": "Check the domain"},
-    {"title": "Urgency", "why_it_matters": "Deadline is same day.", "defender_action": "Verify out of band"},
+    {
+        "title": "Odd domain",
+        "why_it_matters": "Vendor mail came from elsewhere.",
+        "defender_action": "Check the domain",
+    },
+    {
+        "title": "Urgency",
+        "why_it_matters": "Deadline is same day.",
+        "defender_action": "Verify out of band",
+    },
 ]
 
 PAYLOAD = {
@@ -35,7 +53,12 @@ PAYLOAD = {
 
 
 def settings(**over):
-    base = {"base_url": "http://api.test/v1", "model": "test-model", "api_key": "sk-x", "retries": 2}
+    base = {
+        "base_url": "http://api.test/v1",
+        "model": "test-model",
+        "api_key": "sk-x",
+        "retries": 2,
+    }
     base.update(over)
     return Settings(**base)
 
@@ -104,7 +127,11 @@ def test_generate_handles_list_content():
     def handler(request):
         return httpx.Response(
             200,
-            json={"choices": [{"message": {"content": [{"type": "text", "text": json.dumps(PAYLOAD)}]}}]},
+            json={
+                "choices": [
+                    {"message": {"content": [{"type": "text", "text": json.dumps(PAYLOAD)}]}}
+                ]
+            },
         )
 
     from pretext.models import Profile
@@ -198,8 +225,10 @@ def test_usage_captured():
     def handler(request):
         return httpx.Response(
             200,
-            json={"choices": [{"message": {"content": json.dumps(PAYLOAD)}}],
-                  "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}},
+            json={
+                "choices": [{"message": {"content": json.dumps(PAYLOAD)}}],
+                "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
+            },
         )
 
     from pretext.models import Profile
@@ -212,7 +241,13 @@ def test_usage_captured():
 def test_content_of_rejects_bad_shapes():
     from pretext.client import _content_of
 
-    for body in ({}, {"choices": []}, {"choices": [{}]}, {"choices": [{"message": {}}]}, {"choices": "x"}):
+    for body in (
+        {},
+        {"choices": []},
+        {"choices": [{}]},
+        {"choices": [{"message": {}}]},
+        {"choices": "x"},
+    ):
         with pytest.raises(APIError):
             _content_of(body)
 
@@ -377,7 +412,14 @@ def test_empty_content_with_length_hint():
     def handler(request):
         return httpx.Response(
             200,
-            json={"choices": [{"message": {"content": "", "reasoning_content": "thinking"}, "finish_reason": "length"}]},
+            json={
+                "choices": [
+                    {
+                        "message": {"content": "", "reasoning_content": "thinking"},
+                        "finish_reason": "length",
+                    }
+                ]
+            },
         )
 
     with pytest.raises(APIError, match="raise --max-tokens"):

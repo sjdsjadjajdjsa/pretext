@@ -284,9 +284,7 @@ def example(
     """Print the bundled example profile."""
 
     text = (
-        resources.files("pretext")
-        .joinpath("data/example-profile.yaml")
-        .read_text(encoding="utf-8")
+        resources.files("pretext").joinpath("data/example-profile.yaml").read_text(encoding="utf-8")
     )
     if out_file is None:
         typer.echo(text, nl=False)
@@ -404,9 +402,7 @@ def batch(
         label = f"[cyan]{index}/{len(profiles)}[/cyan] {path.name}"
         try:
             prof = load_profile(path)
-            simulation = client.generate(
-                prof, channel=None, extra=extra
-            )
+            simulation = client.generate(prof, channel=None, extra=extra)
         except PretextError as exc:
             failures.append((path.name, str(exc).splitlines()[0]))
             err.print(f"{label} [red]failed[/red] {failures[-1][1]}")

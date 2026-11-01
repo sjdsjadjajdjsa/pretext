@@ -27,9 +27,7 @@ DIFFICULTY_LABELS = {
 }
 
 
-def console(
-    *, no_color: bool = False, width: int | None = None, stderr: bool = False
-) -> Console:
+def console(*, no_color: bool = False, width: int | None = None, stderr: bool = False) -> Console:
     return Console(
         no_color=no_color,
         width=width,
@@ -213,8 +211,7 @@ def to_markdown(
         lines += ["", "## Escalation path", ""]
         for step in simulation.escalation_path:
             lines.append(
-                f"{step.stage}. **{step.channel.value}** · {step.action} "
-                f"_(goal: {step.goal})_"
+                f"{step.stage}. **{step.channel.value}** · {step.action} _(goal: {step.goal})_"
             )
             if step.artifact:
                 lines.append(f"   - Artifact: {step.artifact}")

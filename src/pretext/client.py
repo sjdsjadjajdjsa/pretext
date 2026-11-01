@@ -35,8 +35,7 @@ def extract_json(content: str) -> dict[str, Any]:
         end = text.rfind("}")
         if start == -1 or end <= start:
             raise APIError(
-                "model returned no JSON object; first 200 chars: "
-                f"{content.strip()[:200]!r}"
+                f"model returned no JSON object; first 200 chars: {content.strip()[:200]!r}"
             ) from None
         try:
             parsed = json.loads(text[start : end + 1])
@@ -125,9 +124,7 @@ class Client:
         ) as client:
             for attempt in range(1, attempts + 1):
                 try:
-                    response = client.post(
-                        self.settings.endpoint, json=payload, headers=headers
-                    )
+                    response = client.post(self.settings.endpoint, json=payload, headers=headers)
                 except httpx.TimeoutException as exc:
                     last = APIError(f"request timed out after {self.settings.timeout:g}s")
                     if attempt < attempts:
@@ -153,9 +150,7 @@ class Client:
                 return body
         raise last or APIError("request failed")
 
-
     def list_models(self) -> list[str]:
-
         """Fetch model ids from the endpoint; empty when unsupported."""
 
         headers = {"Authorization": f"Bearer {self.settings.api_key}", "User-Agent": USER_AGENT}
@@ -170,11 +165,8 @@ class Client:
         body = _decode(response)
         entries = body.get("data", [])
         return [
-            str(entry["id"])
-            for entry in entries
-            if isinstance(entry, dict) and entry.get("id")
+            str(entry["id"]) for entry in entries if isinstance(entry, dict) and entry.get("id")
         ]
-
 
     def ping_json(self) -> str:
         """Ask for one tiny JSON object; returns the raw content."""
@@ -189,6 +181,7 @@ class Client:
             "response_format": {"type": "json_object"},
         }
         return _content_of(self._request(payload))
+
 
 def _backoff(attempt: int, retry_after: str | None) -> float:
     if retry_after:
@@ -225,4 +218,3 @@ def _error_text(response: httpx.Response) -> str:
         if body.get("message"):
             return str(body["message"])[:300]
     return str(body)[:300]
-

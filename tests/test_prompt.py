@@ -67,7 +67,9 @@ def test_optional_fields_appear_only_when_set():
 
 
 def test_channel_and_extra_are_appended():
-    profile = Profile(name="Ana Lima", role="Analyst", company="Cobalt", communication_style="Blunt")
+    profile = Profile(
+        name="Ana Lima", role="Analyst", company="Cobalt", communication_style="Blunt"
+    )
     content = build_payload_messages(profile, channel="phone", extra="keep it brief")[1]["content"]
     assert "phone channel" in content
     assert "Additional direction: keep it brief" in content
@@ -78,13 +80,13 @@ def test_schema_keys_match_model_fields():
 
     from pretext.models import EscalationStep, RedFlag, Simulation
 
-    schema = SYSTEM_PROMPT[SYSTEM_PROMPT.index("{"):SYSTEM_PROMPT.index("\n}\n\nRules")]
+    schema = SYSTEM_PROMPT[SYSTEM_PROMPT.index("{") : SYSTEM_PROMPT.index("\n}\n\nRules")]
     top = set(re.findall(r'^  "(\w+)":', schema, re.MULTILINE))
     assert top == set(Simulation.model_fields)
 
-    step = schema[schema.index("escalation_path"):schema.index("red_flags")]
+    step = schema[schema.index("escalation_path") : schema.index("red_flags")]
     assert set(re.findall(r'^      "(\w+)":', step, re.MULTILINE)) == set(
         EscalationStep.model_fields
     )
-    flags = schema[schema.index("red_flags"):]
+    flags = schema[schema.index("red_flags") :]
     assert set(re.findall(r'"(\w+)":', flags)) == set(RedFlag.model_fields)

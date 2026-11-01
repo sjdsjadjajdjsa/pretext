@@ -30,6 +30,12 @@ cannot leak in; keep that isolation.
 - Any prompt change: check `--dry-run` output and, if you have an endpoint, one
   real generation before opening the PR.
 
+## Hooks
+
+```sh
+uv run pre-commit install    # ruff, mypy, pytest before each commit
+```
+
 ## Pull requests
 
 One concern per PR. Describe the training scenario that motivated it. Fill in the

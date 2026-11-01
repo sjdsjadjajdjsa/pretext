@@ -154,9 +154,7 @@ class Simulation(BaseModel):
     def _stages_are_ordered(self) -> Simulation:
         stages = [step.stage for step in self.escalation_path]
         if stages != list(range(1, len(stages) + 1)):
-            raise ValueError(
-                f"escalation_path stages must run 1..n in order, got {stages}"
-            )
+            raise ValueError(f"escalation_path stages must run 1..n in order, got {stages}")
         return self
 
 
@@ -249,9 +247,7 @@ def resolve_settings(
 
     chosen = (provider or pick(None, "PROVIDER") or "").strip().lower() or None
     if chosen is not None and chosen not in PROVIDERS:
-        raise ConfigError(
-            f"unknown provider {chosen!r}; choose from {', '.join(PROVIDERS)}"
-        )
+        raise ConfigError(f"unknown provider {chosen!r}; choose from {', '.join(PROVIDERS)}")
 
     resolved_url = pick(base_url, "BASE_URL")
     if resolved_url is None and chosen is not None:
@@ -283,9 +279,7 @@ def resolve_settings(
             raw[name] = value
 
     if raw["api_key"] == "":
-        raise ConfigError(
-            "no API key: pass --api-key or set PRETEXT_API_KEY / OPENAI_API_KEY"
-        )
+        raise ConfigError("no API key: pass --api-key or set PRETEXT_API_KEY / OPENAI_API_KEY")
 
     try:
         return Settings(**raw)
@@ -317,9 +311,7 @@ def load_profile(path: Path) -> Profile:
     if document is None:
         raise ProfileError(f"profile {path} is empty")
     if not isinstance(document, dict):
-        raise ProfileError(
-            f"profile {path} must be a YAML mapping, got {type(document).__name__}"
-        )
+        raise ProfileError(f"profile {path} must be a YAML mapping, got {type(document).__name__}")
 
     try:
         return Profile.model_validate(document)

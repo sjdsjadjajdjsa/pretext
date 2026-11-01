@@ -71,6 +71,8 @@ and never abort the run on the first failure.
   `Simulation` forbids extra keys and requires `escalation_path` stages to be
   exactly `1..n`, so a model that invents a `stage 2` gap fails instead of
   producing a broken table.
+- `_read_response` validates both halves of an export inside one `try`; a corrupt
+  `profile` key must surface as `ProfileError`, not a raw pydantic traceback.
 - **Errors are `PretextError` subclasses** (`ConfigError`, `ProfileError`,
   `APIError`). The CLI catches them, prints to stderr, exits 1. Do not let raw
   `httpx` or `ValidationError` escape to the user, and do not catch them per
@@ -100,6 +102,8 @@ and never abort the run on the first failure.
 - Empty model content is an error, not an empty simulation. Overlong artifacts are
   trimmed to 300 chars in a `mode="before"` validator; constraints run before
   `mode="after"` validators, so trim early or the run fails.
+- `--out` creates parent directories through `_write_out`; use it rather than calling
+  `write_text` directly so a missing directory never tracebacks.
 - `--dry-run` still resolves settings, so it needs a key; it prints the prompt to
   stdout via `typer.echo` (unwrapped) and exits 0. `validate` needs no key.
 - File output with the default rich format renders into a `Console.capture()`

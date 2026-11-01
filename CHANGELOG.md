@@ -4,6 +4,13 @@ All notable changes. This project follows semantic versioning.
 
 ## Unreleased
 
+- A corrupt `profile` inside a saved response reports field errors instead of a
+  traceback
+- `doctor` suggests close model names, and shows the first schema errors verbatim
+- `batch` reads `.yml` as well as `.yaml`
+- `--out` creates missing parent directories
+- Section parsing lives in one helper instead of two copies
+
 - Distribution renamed `pretext-sim` (the `pretext` name belongs to PreTeXt); the
   command stays `pretext`
 - PyPI publish workflow on release, via trusted publishing

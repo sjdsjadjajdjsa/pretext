@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import difflib
 import json
 import sys
 from enum import StrEnum
@@ -77,18 +78,39 @@ def _read_response(path: Path) -> tuple[Profile | None, Simulation]:
     if not isinstance(document, dict):
         raise ProfileError(f"response {path} must be a JSON object")
 
-    profile = None
-    if isinstance(document.get("profile"), dict):
-        profile = Profile.model_validate(document["profile"])
-
-    raw = document.get("simulation", document)
-    if isinstance(document.get("choices"), list):
-        raw = extract_json(_content_of(document))
-
     try:
+        profile = (
+            Profile.model_validate(document["profile"])
+            if isinstance(document.get("profile"), dict)
+            else None
+        )
+
+        raw = document.get("simulation", document)
+        if isinstance(document.get("choices"), list):
+            raw = extract_json(_content_of(document))
+
         return profile, Simulation.model_validate(raw)
     except ValidationError as exc:
         raise ProfileError(_format_validation(exc, prefix=f"invalid response {path}")) from exc
+
+
+def _write_out(path: Path, body: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body, encoding="utf-8")
+
+
+def _parse_sections(raw: str | None, err) -> tuple[str, ...]:
+    if raw is None:
+        return render.SECTIONS
+    chosen = tuple(part.strip() for part in raw.split(",") if part.strip())
+    unknown = [part for part in chosen if part not in render.SECTIONS]
+    if unknown or not chosen:
+        err.print(
+            f"[bold red]error[/bold red] unknown section(s): {', '.join(unknown) or 'none'}; "
+            f"choose from {', '.join(render.SECTIONS)}"
+        )
+        raise typer.Exit(2)
+    return chosen
 
 
 def _warnings(settings, profile=None) -> list[str]:
@@ -155,16 +177,7 @@ def generate(
     out = render.console(no_color=no_color)
     err = render.console(no_color=no_color, stderr=True)
 
-    selected: tuple[str, ...] = render.SECTIONS
-    if sections is not None:
-        selected = tuple(part.strip() for part in sections.split(",") if part.strip())
-        unknown = [part for part in selected if part not in render.SECTIONS]
-        if unknown or not selected:
-            err.print(
-                f"[bold red]error[/bold red] unknown section(s): {', '.join(unknown) or 'none'}; "
-                f"choose from {', '.join(render.SECTIONS)}"
-            )
-            raise typer.Exit(2)
+    selected = _parse_sections(sections, err)
 
     if profile is None and response_file is None:
         err.print("[bold red]error[/bold red] pass a PROFILE or --from-file")
@@ -210,7 +223,7 @@ def generate(
             err.print()
             typer.echo(prompt)
         else:
-            out_file.write_text(prompt + "\n", encoding="utf-8")
+            _write_out(out_file, prompt + "\n")
             err.print(f"wrote prompt to {out_file}")
         raise typer.Exit(0)
 
@@ -254,7 +267,7 @@ def generate(
             with recording.capture() as captured:
                 render.render_simulation(simulation, prof, recording, sections=selected)
             body = captured.get()
-        out_file.write_text(body, encoding="utf-8")
+        _write_out(out_file, body)
         err.print(f"wrote {out_file}")
         return
 
@@ -289,7 +302,7 @@ def example(
     if out_file is None:
         typer.echo(text, nl=False)
     else:
-        out_file.write_text(text, encoding="utf-8")
+        _write_out(out_file, text)
         typer.echo(f"wrote {out_file}")
 
 
@@ -358,21 +371,16 @@ def batch(
     """Generate one exercise per profile in a directory."""
 
     err = render.console(no_color=no_color, stderr=True)
-    selected: tuple[str, ...] = render.SECTIONS
-    if sections is not None:
-        selected = tuple(part.strip() for part in sections.split(",") if part.strip())
-        unknown = [part for part in selected if part not in render.SECTIONS]
-        if unknown or not selected:
-            err.print(f"[bold red]error[/bold red] unknown section(s): {', '.join(unknown)}")
-            raise typer.Exit(2)
+    selected = _parse_sections(sections, err)
 
     if not directory.is_dir():
         err.print(f"[bold red]error[/bold red] {directory} is not a directory")
         raise typer.Exit(1)
 
-    profiles = sorted(p for p in directory.glob("*.yaml") if not p.name.startswith("_"))
+    candidates = list(directory.glob("*.yaml")) + list(directory.glob("*.yml"))
+    profiles = sorted(p for p in candidates if not p.name.startswith("_"))
     if not profiles:
-        err.print(f"[bold red]error[/bold red] no *.yaml profiles in {directory}")
+        err.print(f"[bold red]error[/bold red] no *.yaml or *.yml profiles in {directory}")
         raise typer.Exit(1)
 
     try:
@@ -492,7 +500,7 @@ def doctor(
         elif settings.model in models:
             record("model", "pass", f"{settings.model} is served")
         else:
-            near = [m for m in models if m.split("/")[-1] in settings.model.split("/")[-1]][:3]
+            near = difflib.get_close_matches(settings.model, models, n=3, cutoff=0.5)
             hint = f"; did you mean {', '.join(near)}" if near else ""
             record("model", "fail", f"{settings.model} is not in the model list{hint}")
     except PretextError as exc:
@@ -519,7 +527,7 @@ def doctor(
                 f"{len(simulation.escalation_path)} stages, {len(simulation.red_flags)} flags",
             )
         except PretextError as exc:
-            record("schema", "fail", str(exc).splitlines()[0])
+            record("schema", "fail", "; ".join(str(exc).splitlines()[:3]))
 
     _render_checks(results, out)
     if any(status == "fail" for _, status, _ in results):

@@ -54,8 +54,9 @@ uvx pretext-sim generate persona.yaml     # no install
 pipx install pretext-sim                  # or a permanent command
 ```
 
-Python 3.11+. The distribution is `pretext-sim`; the command is `pretext`. For the
-source tree: `uv sync --extra dev` then `uv run pretext`.
+Python 3.11+. The distribution is `pretext-sim`; the command is `pretext`. Until the
+first PyPI upload lands, install from a clone: `uv sync --extra dev`, then
+`uv run pretext`.
 
 ## Quickstart
 
@@ -121,7 +122,7 @@ Flags on `generate`:
 | `--channel` | Force the opening channel (email, phone, sms, chat, in_person, linkedin) |
 | `--extra` | Extra direction for the model |
 | `--format` | `rich` (default), `markdown`, `json` |
-| `--out` | Write to a file; plain text unless a format is chosen |
+| `--out` | Write to a file, creating parents; plain text unless a format is chosen |
 | `--sections` | Render only some of `pretext,opening,escalation,red_flags` |
 | `--from-file` | Replay a saved response; no API call, no key |
 | `--dry-run` | Print resolved config and prompt, send nothing; `--out` writes the prompt |

@@ -448,7 +448,7 @@ def test_batch_skips_underscore_files(tmp_path):
 def test_batch_empty_dir(tmp_path):
     result = run("batch", tmp_path, "--out-dir", tmp_path / "out", "--api-key", "sk-x")
     assert result.exit_code == 1
-    assert "no *.yaml profiles" in flat(result)
+    assert "no *.yaml or *.yml profiles" in flat(result)
 
 
 def test_batch_not_a_directory(tmp_path):
@@ -570,3 +570,44 @@ def test_schema_prints_simulation_schema():
 def test_schema_all_includes_profile():
     result = RUNNER.invoke(cli.app, ["schema", "--all"])
     assert set(json.loads(result.stdout)) == {"simulation", "profile"}
+
+
+def test_replay_corrupt_wrapped_profile(tmp_path):
+    bad = tmp_path / "wrapped.json"
+    bad.write_text(json.dumps({"profile": {"name": "x"}, "simulation": PAYLOAD}), encoding="utf-8")
+    result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(bad)])
+    assert result.exit_code == 1
+    assert "invalid response" in flat(result)
+    assert "communication_style" in flat(result)
+
+
+def test_batch_reads_yml(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "one.yml").write_text(PROFILE_YAML, encoding="utf-8")
+    result = run("batch", src, "--out-dir", tmp_path / "out", "--api-key", "sk-x")
+    assert result.exit_code == 0
+    assert (tmp_path / "out" / "one.md").exists()
+
+
+def test_doctor_suggests_close_model(doctor):
+    DoctorStub.models = ["test-model", "test-model-mini"]
+    result = RUNNER.invoke(
+        cli.app,
+        ["doctor", "--api-key", "k", "--base-url", "https://x.test/v1", "--model", "testmodel"],
+    )
+    assert "did you mean" in flat_out(result)
+
+
+def test_out_creates_parent_directories(profile, tmp_path):
+    target = tmp_path / "a" / "b" / "out.md"
+    result = run("generate", profile, "--api-key", "sk-x", "--format", "markdown", "--out", target)
+    assert result.exit_code == 0
+    assert target.exists()
+
+
+def test_example_out_creates_parents(tmp_path):
+    target = tmp_path / "x" / "p.yaml"
+    result = run("example", "--out", target)
+    assert result.exit_code == 0
+    assert target.exists()

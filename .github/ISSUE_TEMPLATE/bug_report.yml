@@ -1,0 +1,38 @@
+name: Bug report
+description: Something in pretext broke or returned the wrong thing
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please redact your API key and anything confidential in pasted output.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Include the command, the exit code, and the full error.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `pretext --version`.
+    validations:
+      required: true
+  - type: input
+    id: endpoint
+    attributes:
+      label: Endpoint and model
+      description: Which provider or proxy, and which model name. No keys.
+  - type: textarea
+    id: profile
+    attributes:
+      label: Profile
+      description: The YAML profile, if the bug depends on it.

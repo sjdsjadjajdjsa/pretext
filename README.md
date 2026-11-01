@@ -8,7 +8,7 @@ Narrative, opening message, escalation path, and the red flags defenders should
 have caught, generated, validated, then rendered where you need it.
 
 [![ci](https://github.com/sjdsjadjajdjsa/pretext/actions/workflows/ci.yml/badge.svg)](https://github.com/sjdsjadjajdjsa/pretext/actions/workflows/ci.yml)
-![python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)
+![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)
 ![license](https://img.shields.io/badge/license-MIT-blue.svg)
 
 <img src="docs/demo.png" alt="pretext rendering a simulation in the terminal" width="820">
@@ -54,7 +54,7 @@ uvx pretext-sim generate persona.yaml     # no install
 pipx install pretext-sim                  # or a permanent command
 ```
 
-Python 3.10+. The distribution is `pretext-sim`; the command is `pretext`. For the
+Python 3.11+. The distribution is `pretext-sim`; the command is `pretext`. For the
 source tree: `uv sync --extra dev` then `uv run pretext`.
 
 ## Quickstart

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
-from enum import Enum
+from enum import StrEnum
 from importlib import resources
 from pathlib import Path
 
@@ -52,7 +52,7 @@ def root(
     """Labeled social-engineering simulations for authorized training."""
 
 
-class OutputFormat(str, Enum):
+class OutputFormat(StrEnum):
     rich = "rich"
     json = "json"
     markdown = "markdown"

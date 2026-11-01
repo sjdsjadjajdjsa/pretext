@@ -127,7 +127,7 @@ the social preview (404 on every version), so it is uploaded in Settings → Gen
 ## Repo hygiene
 
 CI (`.github/workflows/ci.yml`) runs ruff, pytest, and a dry-run smoke on Python
-3.10-3.13; the local equivalents are `ruff check src tests` and `pytest`. Test
+3.11-3.13; the local equivalents are `ruff check src tests` and `pytest`. Test
 files are exempt from E501, source files are not.
 
 Releasing means bumping `__version__` in `__init__.py` and `version` in

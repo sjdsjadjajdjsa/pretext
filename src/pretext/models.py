@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -37,7 +37,7 @@ class APIError(PretextError):
     """The inference endpoint failed or returned something unusable."""
 
 
-class Channel(str, Enum):
+class Channel(StrEnum):
     EMAIL = "email"
     PHONE = "phone"
     SMS = "sms"

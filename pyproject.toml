@@ -3,7 +3,7 @@ name = "pretext-sim"
 version = "0.3.2"
 description = "Generate labeled social-engineering simulations for security training"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "pretext contributors" }]
 keywords = ["security", "security-awareness", "phishing", "red-team", "cli", "training"]
@@ -13,7 +13,6 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -54,7 +53,7 @@ addopts = "-q"
 source = ["pretext"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 files = ["src"]
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -67,7 +66,7 @@ ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 ignore = ["B008"]

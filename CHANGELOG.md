@@ -21,6 +21,8 @@ All notable changes. This project follows semantic versioning.
 
 ## 0.3.2
 
+- Dropped Python 3.10 (end of life) so the lockfile can use a patched `filelock`
+
 - PyPI upload runs inside the release workflow
 
 ## 0.3.1

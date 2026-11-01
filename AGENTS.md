@@ -132,9 +132,10 @@ files are exempt from E501, source files are not.
 
 Releasing means bumping `__version__` in `__init__.py` and `version` in
 `pyproject.toml`, adding a `CHANGELOG.md` section (the tag must match the version),
-then tagging `vX.Y.Z`, which triggers `release.yml`. Publishing that release hands
-off to `publish.yml`, which uses trusted publishing with environment `pypi`; it stays
-red until the trusted publisher exists on PyPI. `SECURITY.md` and `CONTRIBUTING.md`
+then tagging `vX.Y.Z`, which triggers `release.yml`. PyPI upload is a second job in
+that same file using trusted publishing (environment `pypi`) and stays red until the
+trusted publisher exists on PyPI. It cannot live in its own workflow: a release
+created with `GITHUB_TOKEN` fires no `release` event. `SECURITY.md` and `CONTRIBUTING.md`
 are user-facing; changes to the schema or CLI need a line there when behaviour moves.
 
 ## Tests

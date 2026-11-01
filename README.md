@@ -106,6 +106,7 @@ rejected so typos surface early. Fixture personas live in
 | `example` | Print the bundled fictional profile |
 | `batch DIR` | One exercise per `*.yaml` in DIR (files starting `_` are skipped) |
 | `doctor` | Probe the endpoint: config, TLS, reachability, model, JSON mode |
+| `schema` | Print the JSON Schema model output must satisfy (`--all` adds the profile) |
 | `config` | Show resolved settings, key masked |
 
 Flags on `generate`:

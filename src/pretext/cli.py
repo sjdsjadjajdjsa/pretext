@@ -545,3 +545,15 @@ def _render_checks(results: list[tuple[str, str, str]], out) -> None:
     for name, status, detail in results:
         table.add_row(name, marks[status], detail)
     out.print(table)
+
+
+@app.command()
+def schema(
+    everything: bool = typer.Option(False, "--all", help="Include the profile schema too."),
+) -> None:
+    """Print the JSON Schema the model output must satisfy."""
+
+    payload = {"simulation": Simulation.model_json_schema()}
+    if everything:
+        payload["profile"] = Profile.model_json_schema()
+    typer.echo(json.dumps(payload, indent=2))

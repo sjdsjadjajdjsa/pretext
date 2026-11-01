@@ -494,3 +494,16 @@ def test_config_provider(doctor):
     result = RUNNER.invoke(cli.app, ["config", "--provider", "openrouter", "--api-key", "k"])
     assert result.exit_code == 0
     assert "openrouter.ai" in flat_out(result)
+
+
+def test_schema_prints_simulation_schema():
+    result = RUNNER.invoke(cli.app, ["schema"])
+    assert result.exit_code == 0
+    body = json.loads(result.stdout)
+    assert "simulation" in body and "profile" not in body
+    assert body["simulation"]["title"] == "Simulation"
+
+
+def test_schema_all_includes_profile():
+    result = RUNNER.invoke(cli.app, ["schema", "--all"])
+    assert set(json.loads(result.stdout)) == {"simulation", "profile"}

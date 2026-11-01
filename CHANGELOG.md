@@ -4,6 +4,7 @@ All notable changes. This project follows semantic versioning.
 
 ## Unreleased
 
+- `schema` dumps the JSON Schema for integrators and drift checks
 - `--provider` preset for openai, openrouter, venice, ollama and lmstudio
 - `doctor` probes config, TLS, reachability, model availability and JSON mode,
   with `--full` to test schema adherence

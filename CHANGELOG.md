@@ -4,6 +4,8 @@ All notable changes. This project follows semantic versioning.
 
 ## Unreleased
 
+- Model corpus with structural invariant tests, and clear errors when a thinking
+  model runs out of output budget
 - `schema` dumps the JSON Schema for integrators and drift checks
 - `--provider` preset for openai, openrouter, venice, ollama and lmstudio
 - `doctor` probes config, TLS, reachability, model availability and JSON mode,

@@ -132,6 +132,14 @@ class Simulation(BaseModel):
     difficulty: Annotated[int, Field(ge=1, le=5)] = 3
     objective: str = Field(default="", max_length=300)
 
+    @field_validator("objective", mode="before")
+    @classmethod
+    def _trim_objective(cls, value: Any) -> Any:
+        if not isinstance(value, str):
+            return value
+        trimmed = value.strip()
+        return trimmed if len(trimmed) <= 300 else f"{trimmed[:297].rstrip()}..."
+
     @field_validator("opening_message")
     @classmethod
     def _strip_headers(cls, value: str) -> str:
@@ -170,7 +178,7 @@ class Settings(BaseModel):
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     timeout: float = Field(default=60.0, gt=0, le=600)
     retries: int = Field(default=3, ge=0, le=8)
-    max_tokens: int = Field(default=2400, ge=256, le=16000)
+    max_tokens: int = Field(default=3200, ge=256, le=16000)
     seed: int | None = None
 
     @property

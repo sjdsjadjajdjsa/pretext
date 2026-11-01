@@ -1,0 +1,71 @@
+{
+  "model": "venice-uncensored-1-2",
+  "profile": {
+    "name": "Ruben Alcaraz",
+    "role": "IT Service Desk Technician",
+    "company": "Kestrel Freight",
+    "communication_style": "Terse, ticket numbers first, drops greetings",
+    "department": null,
+    "tenure": null,
+    "reports_to": null,
+    "systems": [
+      "ticketing queue",
+      "endpoint management"
+    ],
+    "notes": null
+  },
+  "simulation": {
+    "pretext": "The attacker, posing as a representative from Kestrel Freight's software vendor, leverages information from a recent press release about Kestrel's IT service expansion. The attacker registers a domain, kestrelsoftwareupdates.com, which closely resembles the legitimate software vendor's website. They craft a ticket in the ticketing system under the name 'Ruben Alcaraz' to mimic his own communication style, noting the ticket number 'KF-ENDPOINT-04237' to make it seem like an official request. The attacker's goal is to get Ruben to install a supposed critical update from their fraudulent site, exploiting his role as an IT Service Desk Technician and his responsibility for managing endpoint software. Today is the deadline for the fake update to avoid 'system vulnerabilities'.",
+    "opening_message": "Ruben, this is Alex from Kestrel Software Updates. Referencing ticket KF-ENDPOINT-04237, we need you to install our latest critical security update. Please download and install it from our site, kestrelsoftwareupdates.com, immediately. It's crucial for ensuring our systems' security.",
+    "subject_line": "KF-ENDPOINT-04237: Urgent Software Update",
+    "escalation_path": [
+      {
+        "stage": 1,
+        "channel": "email",
+        "action": "Send a reminder email",
+        "goal": "Remind Ruben to install the update",
+        "artifact": "kestrelsoftwareupdates.com/update"
+      },
+      {
+        "stage": 2,
+        "channel": "phone",
+        "action": "Call Ruben to follow up",
+        "goal": "Confirm Ruben has seen the email",
+        "artifact": "Ticket KF-ENDPOINT-04237"
+      },
+      {
+        "stage": 3,
+        "channel": "chat",
+        "action": "Message Ruben on the company chat platform",
+        "goal": "Provide a direct link to the update",
+        "artifact": "kestrelsoftwareupdates.com/install"
+      },
+      {
+        "stage": 4,
+        "channel": "in_person",
+        "action": "Visit Ruben's desk",
+        "goal": "Ensure the update is installed",
+        "artifact": "Installation confirmation"
+      }
+    ],
+    "red_flags": [
+      {
+        "title": "Unusual Domain Name",
+        "why_it_matters": "The domain name is slightly off from the legitimate vendor's, which could indicate a phishing attempt.",
+        "defender_action": "Verify the domain's authenticity before proceeding."
+      },
+      {
+        "title": "Tense and Urgent Language",
+        "why_it_matters": "The tone is unusually urgent and tense, which is a common tactic in phishing.",
+        "defender_action": "Be cautious of urgent requests without proper context."
+      },
+      {
+        "title": "Lack of Official Confirmation",
+        "why_it_matters": "There's no official confirmation or announcement from Kestrel Freight about this update.",
+        "defender_action": "Check with the software vendor directly to confirm the update's legitimacy."
+      }
+    ],
+    "difficulty": 4,
+    "objective": "Convince Ruben to install a malicious software update from a fraudulent domain."
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "model": "deepseek-v4-1-flash",
+  "profile": {
+    "name": "Ruben Alcaraz",
+    "role": "IT Service Desk Technician",
+    "company": "Kestrel Freight",
+    "communication_style": "Terse, ticket numbers first, drops greetings",
+    "department": null,
+    "tenure": null,
+    "reports_to": null,
+    "systems": [
+      "ticketing queue",
+      "endpoint management"
+    ],
+    "notes": null
+  },
+  "simulation": {
+    "pretext": "Kestrel Freight's 14 October press release for the Laredo cross-dock terminal named the go-live date and confirmed the fleet-wide Ridgeline endpoint agent rollout. A contractor pasted a Wave 3 runbook excerpt into a public IT-ops forum thread, including the 06:00 Monday push. The attacker pulled two more items from that same thread: a screenshot of Ruben Alcaraz's Waybill ITSM queue showing ticket KF-41827 and his signature block, and a FreightOps Tech 2026 badge-scan list from the Ridgeline booth carrying his name and title. That is enough to sound like the person who owns the rollout.\n\nThe attacker registered kestrelfreight.co and built mailbox d.whitcomb@kestrelfreight.co under the display name 'Dana Whitcomb \u2014 Endpoint Ops, Kestrel Freight'. Dana is invented; there is no Dana Whitcomb in the Kestrel GAL. A spreadsheet named Ridgeline-Wave3-Exclusions.xlsx and a signed-looking change record CHG-2026-1188 were staged behind a file-share link. A second identity, 'Ellis Boatwright, Endpoint Ops Manager', exists only as a voice on a burner number, and a third, 'T. Okafor, Ridgeline Field Services', exists only as a printed badge.\n\nContact lands Sunday 1 November because Wave 3 pushes at 06:00 Monday and the desk runs a skeleton overnight shift; the attacker's stated 22:00 freeze appears nowhere in the real runbook. Ruben's ticket-first, no-greeting register is the entire camouflage \u2014 the attacker opens with a ticket number and an operational demand, which is exactly how his genuine queue traffic reads, and never once asks him to verify anything.",
+    "opening_message": "KF-41827 \u2014 Dana Whitcomb, Endpoint Ops, I own the Ridgeline rollout for Laredo and I need the three cross-dock scanners in the Wave 3 exclusion group before the 22:00 freeze tonight. Group name is RIDG-W3-EXCL, asset tags are on page 2 of Ridgeline-Wave3-Exclusions.xlsx. Reply with the group ID once it's set; after 22:00 the build goes out as-is and the handhelds drop mid-shift Monday. I'm at d.whitcomb@kestrelfreight.co, the distro won't reach me until Tuesday.",
+    "subject_line": "KF-41827 / RIDG-W3-EXCL before 22:00",
+    "escalation_path": [
+      {
+        "stage": 1,
+        "channel": "chat",
+        "action": "The attacker opens a DM in Kestrel's ops chat as Dana Whitcomb and says the exclusion group cannot be built through the console UI because it is locked for the freeze. Dana introduces a new person \u2014 'Priya Raghunathan in Security cleared this' \u2014 and drops a script named Ridgeline_Excl_Add.ps1, claiming it is the same helper the Wave 2 techs used. The ask narrows: run the script on the console host, not the web UI, and paste back the group ID it prints.",
+        "goal": "Get Ruben to execute attacker-controlled code on the Ridgeline console host under his own service-desk credentials.",
+        "artifact": "Ridgeline_Excl_Add.ps1 (file-share link, hash listed in the chat message)"
+      },
+      {
+        "stage": 2,
+        "channel": "phone",
+        "action": "A burner number calls the service-desk line. The caller is 'Ellis Boatwright, Endpoint Ops Manager' \u2014 Dana's supposed manager \u2014 and he references the chat by name and time. He asks Ruben to confirm the script completed, then says a consent request is sitting in the Ridgeline tenant and needs a service-desk approval before the push. He stays on the line while Ruben opens the console.",
+        "goal": "Convert the script run into an approved OAuth/admin consent for the attacker's tenant application.",
+        "artifact": "Consent request CON-7741, described as 'pending on your Ridgeline home screen'"
+      },
+      {
+        "stage": 3,
+        "channel": "email",
+        "action": "An email from the same lookalike domain attaches a forged change record and asks Ruben to create a service account named svc_ridgeline_ops, grant it the Endpoint Admin role, and reply with the temporary password he sets so the overnight field tech can use it. The change record is dated 30 October and references the same ticket number.",
+        "goal": "Establish a named, credentialed console admin account the attacker can use after Ruben's shift ends.",
+        "artifact": "CHG-2026-1188.pdf (forged change record, attached)"
+      },
+      {
+        "stage": 4,
+        "channel": "sms",
+        "action": "A text from a second burner number arrives as Dana, off-shift and apologetic. The console is prompting for MFA on the new service account and Dana cannot get to her phone authenticator. She asks Ruben to approve the push notification or read her the six digits so the field tech is not blocked at 05:00.",
+        "goal": "Defeat MFA on the newly created admin account using Ruben's own approval.",
+        "artifact": "Push notification titled 'Ridgeline Console \u2014 Fort Worth' on Ruben's enrolled device"
+      },
+      {
+        "stage": 5,
+        "channel": "in_person",
+        "action": "At 05:15 Monday a person presenting as 'T. Okafor, Ridgeline Field Services' arrives at the Laredo cross-dock gate with a printed work order and asks Ruben to badge them into the comms closet and log them into the console on his own laptop, since the service account is still flagged for password change.",
+        "goal": "Trade remote access for physical access to the cross-dock network closet and an authenticated console session on Ruben's machine.",
+        "artifact": "Printed work order WO-88213 and a Ridgeline Field Services badge"
+      }
+    ],
+    "red_flags": [
+      {
+        "title": "The sender's domain is kestrelfreight.co, not kestrelfreight.com",
+        "why_it_matters": "The display name reads 'Kestrel Freight' but the mailbox is on a registered lookalike. Dana Whitcomb does not exist in the Kestrel GAL, and the message itself tells Ruben the internal distro 'won't reach' her \u2014 a deliberate reason to keep the reply on the attacker's domain.",
+        "defender_action": "Search the GAL for the name before replying, compare the header domain character by character against the real one, and forward the message to security rather than answering it."
+      },
+      {
+        "title": "KF-41827 is a closed ticket about a printer queue",
+        "why_it_matters": "The number is real and was scraped from a screenshot, but its subject has nothing to do with endpoint rollout work. The attacker relies on the number alone carrying credibility, and on Ruben not opening the record.",
+        "defender_action": "Open the ticket in Waybill and read the subject, requester, and owner. If the number does not match the work being requested, stop and call the requester back on a number from the directory."
+      },
+      {
+        "title": "The ask crosses from configuration into credentials and admin rights",
+        "why_it_matters": "Contact starts as an exclusion-group edit, then becomes a script on the console host, then admin consent, then a brand-new console admin account with a password Ruben chooses. No change record existed until the third contact, and it arrived as an attachment rather than through the CMDB.",
+        "defender_action": "Treat any request that creates an account, grants a role, or approves consent as a change requiring a CMDB-verified record and a second approver \u2014 never an emailed PDF."
+      },
+      {
+        "title": "The 22:00 freeze does not exist",
+        "why_it_matters": "The published Wave 3 runbook freezes changes at 18:00 Friday. The Sunday-night deadline is invented to land the work on a skeleton shift where nobody senior is awake to question it.",
+        "defender_action": "Check the deadline against the runbook or the change calendar. A deadline that appears only in the message asking for the work is not a deadline."
+      },
+      {
+        "title": "Every contact lands inside the same overnight window under the same invented name",
+        "why_it_matters": "Only visible in hindsight: chat, call, email, and text all cluster between 20:00 and 04:00 Sunday into Monday, and each one uses the name Dana Whitcomb while the voice on the phone claims to be her manager. Laid side by side, the timing tracks the skeleton shift rather than any real rollout schedule.",
+        "defender_action": "When an after-hours request spans multiple channels, log the timestamps together and hand the pattern to security before acting on any single message."
+      }
+    ],
+    "difficulty": 5,
+    "objective": "Get Ruben Alcaraz to run an attacker-supplied PowerShell script on the Ridgeline endpoint management console host, convert that into a persistent console admin account (svc_ridgeline_ops), and finish with a Monday-morning physical entry to the Laredo cross-dock comms closet."
+  }
+}

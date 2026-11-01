@@ -65,6 +65,12 @@ def _content_of(body: dict[str, Any]) -> str:
         content = "".join(pieces)
 
     if not isinstance(content, str) or not content.strip():
+        reason = choice.get("finish_reason") if isinstance(choice, dict) else None
+        if reason == "length":
+            raise APIError(
+                "model returned no content, only reasoning (finish_reason=length); "
+                "raise --max-tokens"
+            )
         raise APIError("model returned empty content")
     return content
 

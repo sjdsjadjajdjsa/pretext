@@ -371,3 +371,14 @@ def test_ping_json_returns_content():
         return chat_response('{"ok": true}')
 
     assert client_with(handler).ping_json() == '{"ok": true}'
+
+
+def test_empty_content_with_length_hint():
+    def handler(request):
+        return httpx.Response(
+            200,
+            json={"choices": [{"message": {"content": "", "reasoning_content": "thinking"}, "finish_reason": "length"}]},
+        )
+
+    with pytest.raises(APIError, match="raise --max-tokens"):
+        client_with(handler).generate(_profile())

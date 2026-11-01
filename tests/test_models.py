@@ -267,3 +267,9 @@ def test_provider_from_env(tmp_path, monkeypatch):
     monkeypatch.setenv("PRETEXT_PROVIDER", "openrouter")
     settings = resolve_settings(api_key="k", dotenv=tmp_path / "none")
     assert "openrouter.ai" in str(settings.base_url)
+
+
+def test_long_objective_is_trimmed():
+    sim = Simulation.model_validate(simulation_payload(objective="y" * 500))
+    assert len(sim.objective) <= 300
+    assert sim.objective.endswith("...")

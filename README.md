@@ -191,6 +191,9 @@ uv run mypy
 The suite needs no key. `conftest.py` chdirs each test into a temp directory so your
 own `.env` cannot leak in, and pins the terminal width so Rich reflow stays stable.
 
+`scripts/capture_corpus.py` refreshes `tests/fixtures/corpus`, which
+`tests/test_corpus.py` checks for structural promises.
+
 `AGENTS.md` documents the layout, the hardening rules, and the traps for agent
 contributors. `CONTRIBUTING.md` covers process; security reports follow `SECURITY.md`.
 

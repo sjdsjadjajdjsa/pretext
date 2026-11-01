@@ -2,6 +2,10 @@
 
 All notable changes. This project follows semantic versioning.
 
+## Unreleased
+
+- Verified against Venice (venice-uncensored-1-2, qwen3-235b-a22b-instruct)
+
 ## 0.2.0
 
 - `--from-file` replays a saved export, bare simulation, or chat body with no API

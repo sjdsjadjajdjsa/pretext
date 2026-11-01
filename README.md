@@ -169,7 +169,8 @@ Pre-1.0: the CLI surface and JSON schema can still move between minor versions;
 `CHANGELOG.md` records what changed.
 
 Output has been checked against gpt-4o-mini, gemini-2.5-flash, claude-haiku-4.5 and
-llama-3.3-70b through OpenRouter; all four held the JSON contract and used distinct
+llama-3.3-70b through OpenRouter, plus venice-uncensored-1-2 and
+qwen3-235b-a22b-instruct on Venice. All six held the JSON contract and used distinct
 channels. Weak models will still need prompt tuning, and the suite covers the
 pipeline rather than any one model's prose.
 

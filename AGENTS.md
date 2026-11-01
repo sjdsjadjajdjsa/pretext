@@ -141,9 +141,10 @@ from the export or must be passed explicitly. `tests/fixtures/responses/dana.jso
 is a real capture used by the replay and render tests. Keep a fixture in sync when
 you change the schema, or those tests are worthless.
 
-Cross-provider smoke: gpt-4o-mini, gemini-2.5-flash, claude-haiku-4.5 and
-llama-3.3-70b all held the JSON contract. Re-check one non-OpenAI model after a
-prompt change; prose quality varies far more than schema adherence.
+Cross-provider smoke: gpt-4o-mini, gemini-2.5-flash, claude-haiku-4.5,
+llama-3.3-70b, venice-uncensored-1-2 and qwen3-235b-a22b all held the JSON contract.
+Re-check one non-OpenAI model after a prompt change; prose quality varies far more
+than schema adherence. Venice accepts `response_format: json_object` like the rest.
 
 `sample-output.md` is a real `gpt-4o-mini` run through OpenRouter, kept as the
 quality bar. Prompt changes should be compared against it; a run costs well under

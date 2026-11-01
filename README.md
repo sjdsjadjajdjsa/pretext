@@ -100,6 +100,7 @@ rejected so typos surface early. Fixture personas live in
 | `generate PROFILE` | Produce one exercise |
 | `validate PROFILE` | Validate without calling the API |
 | `example` | Print the bundled fictional profile |
+| `batch DIR` | One exercise per `*.yaml` in DIR (files starting `_` are skipped) |
 | `config` | Show resolved settings, key masked |
 
 Flags on `generate`:
@@ -112,7 +113,7 @@ Flags on `generate`:
 | `--out` | Write to a file; plain text unless a format is chosen |
 | `--sections` | Render only some of `pretext,opening,escalation,red_flags` |
 | `--from-file` | Replay a saved response; no API call, no key |
-| `--dry-run` | Print resolved config and prompt, send nothing |
+| `--dry-run` | Print resolved config and prompt, send nothing; `--out` writes the prompt |
 | `--usage` | Token counts on stderr |
 | `--base-url`, `--model`, `--api-key` | Override endpoint settings |
 | `--temperature`, `--max-tokens`, `--timeout`, `--retries`, `--seed` | Sampling and transport |
@@ -123,6 +124,19 @@ Exit codes: `0` success, `1` bad profile/config/API/schema failure, `2` usage er
 
 `--from-file` accepts a `--format json` export, a bare simulation object, or a raw
 chat completion body, so formatting work stays free and offline.
+
+## Batch runs
+
+For a whole team, point `batch` at a directory and it writes one file per profile,
+continuing past failures:
+
+```sh
+pretext batch profiles/ --out-dir packet/ --format markdown
+```
+
+Progress and a `wrote 7/9` summary go to stderr, the failure reasons are listed, and
+the exit code is `1` if anything failed. Endpoint flags are the same as `generate`;
+`--sections`, `--format` and `--usage` apply to the run as a whole.
 
 ## Configuration
 

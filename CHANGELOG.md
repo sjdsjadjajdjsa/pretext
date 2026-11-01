@@ -4,6 +4,8 @@ All notable changes. This project follows semantic versioning.
 
 ## Unreleased
 
+- `batch` generates one exercise per profile in a directory, continuing past failures
+- `--dry-run --out` writes the prompt instead of ignoring `--out`
 - Verified against Venice (venice-uncensored-1-2, qwen3-235b-a22b-instruct)
 
 ## 0.2.0

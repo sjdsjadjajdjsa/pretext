@@ -350,3 +350,71 @@ def test_local_endpoint_warning(profile):
     result = run("generate", profile, "--api-key", "sk-x", "--base-url", "http://localhost:9/v1", "--dry-run")
     assert result.exit_code == 0
     assert "endpoint is local" in flat(result)
+
+
+def test_dry_run_writes_prompt_file(profile, tmp_path):
+    target = tmp_path / "prompt.json"
+    result = run("generate", profile, "--api-key", "sk-x", "--dry-run", "--out", target)
+    assert result.exit_code == 0
+    assert json.loads(target.read_text(encoding="utf-8"))["messages"]
+    assert "wrote prompt" in flat(result)
+
+
+FIXTURE_DIR = Path(__file__).parent / "fixtures" / "profiles"
+
+
+def test_batch_writes_one_file_per_profile(tmp_path):
+    target = tmp_path / "packet"
+    result = run("batch", FIXTURE_DIR, "--out-dir", target, "--api-key", "sk-x")
+    assert result.exit_code == 0
+    assert sorted(p.name for p in target.glob("*.md")) == [
+        "exec-assistant.md", "finance.md", "helpdesk.md", "new-hire.md",
+    ]
+    assert "4/4" in flat(result)
+
+
+def test_batch_isolates_failures(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "good.yaml").write_text(PROFILE_YAML, encoding="utf-8")
+    (src / "bad.yaml").write_text("name: x\n", encoding="utf-8")
+    target = tmp_path / "out"
+    result = run("batch", src, "--out-dir", target, "--api-key", "sk-x")
+    assert result.exit_code == 1
+    assert (target / "good.md").exists()
+    assert not (target / "bad.md").exists()
+    assert "1/2" in flat(result)
+
+
+def test_batch_skips_underscore_files(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "_partial.yaml").write_text("nope", encoding="utf-8")
+    (src / "one.yaml").write_text(PROFILE_YAML, encoding="utf-8")
+    result = run("batch", src, "--out-dir", tmp_path / "out", "--api-key", "sk-x")
+    assert result.exit_code == 0
+    assert "1/1" in flat(result)
+
+
+def test_batch_empty_dir(tmp_path):
+    result = run("batch", tmp_path, "--out-dir", tmp_path / "out", "--api-key", "sk-x")
+    assert result.exit_code == 1
+    assert "no *.yaml profiles" in flat(result)
+
+
+def test_batch_not_a_directory(tmp_path):
+    result = run("batch", tmp_path / "nope", "--out-dir", tmp_path / "out", "--api-key", "sk-x")
+    assert result.exit_code == 1
+    assert "not a directory" in flat(result)
+
+
+def test_batch_sections_validated(tmp_path):
+    result = run("batch", FIXTURE_DIR, "--out-dir", tmp_path, "--api-key", "sk-x", "--sections", "bogus")
+    assert result.exit_code == 2
+    assert "bogus" in flat(result)
+
+
+def test_batch_usage_totals(tmp_path):
+    result = run("batch", FIXTURE_DIR, "--out-dir", tmp_path, "--api-key", "sk-x", "--usage")
+    assert result.exit_code == 0
+    assert "total 12" in flat(result)

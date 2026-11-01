@@ -37,7 +37,7 @@ profile.yaml ──load_profile──> Profile ──prompt.build_payload_messag
 | `client.py` | httpx POST, retry policy, JSON extraction, response validation |
 | `render.py` | Rich panels (section-gated), markdown/JSON serializers, `DISCLAIMER` |
 | `docs/` | README demo and social preview, both generated, never hand-edited |
-| `cli.py` | Typer commands: `generate`, `validate`, `example`, `config` |
+| `cli.py` | Typer commands: `generate`, `batch`, `validate`, `example`, `config` |
 | `data/example-profile.yaml` | Fictional persona used by `pretext example` and the README |
 
 `tests/fixtures/profiles/` holds four personas covering distinct roles; the prompt
@@ -47,6 +47,10 @@ tests run every one and assert the payload carries the profile fields.
 env, then `./.env`, then `OPENAI_API_KEY`, then defaults. Every new option needs a
 row there, an env name, a CLI flag, and a `Settings` field, else it silently never
 resolves.
+
+`batch` mirrors `generate`'s endpoint flags, skips `_`-prefixed files, isolates
+per-profile failures, and exits 1 if any profile failed. Keep the summary on stderr
+and never abort the run on the first failure.
 
 ## Contract rules
 

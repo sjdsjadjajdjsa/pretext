@@ -129,7 +129,9 @@ def generate(
     fmt: OutputFormat = typer.Option(OutputFormat.rich, "--format", "-f", help="Output format."),
     out_file: Path = typer.Option(None, "--out", "-o", help="Write output to this file."),
     dry_run: bool = typer.Option(
-        False, "--dry-run", help="Resolve config and print the prompt; call nothing."
+        False,
+        "--dry-run",
+        help="Resolve config and print the prompt; call nothing. --out writes the prompt.",
     ),
     response_file: Path = typer.Option(
         None, "--from-file", help="Render a saved response instead of calling the API."
@@ -194,8 +196,13 @@ def generate(
         render.render_settings(settings, err)
         render.render_profile(prof, err)
         render.render_warnings(warnings, err)
-        err.print()
-        typer.echo(dump_prompt(prof, channel=channel.value if channel else None, extra=extra))
+        prompt = dump_prompt(prof, channel=channel.value if channel else None, extra=extra)
+        if out_file is None:
+            err.print()
+            typer.echo(prompt)
+        else:
+            out_file.write_text(prompt + "\n", encoding="utf-8")
+            err.print(f"wrote prompt to {out_file}")
         raise typer.Exit(0)
 
     render.render_warnings(warnings, err)
@@ -306,3 +313,108 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+@app.command()
+def batch(
+    directory: Path = typer.Argument(..., metavar="DIR", help="Directory of YAML profiles."),
+    out_dir: Path = typer.Option(..., "--out-dir", "-o", help="Where to write each exercise."),
+    fmt: OutputFormat = typer.Option(OutputFormat.markdown, "--format", "-f"),
+    sections: str = typer.Option(None, "--sections", help="Comma list of sections to render."),
+    extra: str = typer.Option(None, "--extra", help="Extra direction for the model."),
+    base_url: str = typer.Option(
+        None, "--base-url", "-u", help=f"API root [{ENV_PREFIX}BASE_URL]."
+    ),
+    model: str = typer.Option(None, "--model", "-m", help=f"Model name [{ENV_PREFIX}MODEL]."),
+    api_key: str = typer.Option(
+        None, "--api-key", "-k", help=f"Bearer token [{ENV_PREFIX}API_KEY, OPENAI_API_KEY]."
+    ),
+    temperature: float = typer.Option(None, "--temperature", "-t", min=0.0, max=2.0),
+    max_tokens: int = typer.Option(None, "--max-tokens", min=256, max=16000),
+    timeout: float = typer.Option(None, "--timeout", min=1.0, max=600.0),
+    retries: int = typer.Option(None, "--retries", min=0, max=8),
+    seed: int = typer.Option(None, "--seed"),
+    usage: bool = typer.Option(False, "--usage", help="Print token totals to stderr."),
+    no_color: bool = typer.Option(False, "--no-color"),
+) -> None:
+    """Generate one exercise per profile in a directory."""
+
+    err = render.console(no_color=no_color, stderr=True)
+    selected = render.SECTIONS
+    if sections is not None:
+        selected = tuple(part.strip() for part in sections.split(",") if part.strip())
+        unknown = [part for part in selected if part not in render.SECTIONS]
+        if unknown or not selected:
+            err.print(f"[bold red]error[/bold red] unknown section(s): {', '.join(unknown)}")
+            raise typer.Exit(2)
+
+    if not directory.is_dir():
+        err.print(f"[bold red]error[/bold red] {directory} is not a directory")
+        raise typer.Exit(1)
+
+    profiles = sorted(p for p in directory.glob("*.yaml") if not p.name.startswith("_"))
+    if not profiles:
+        err.print(f"[bold red]error[/bold red] no *.yaml profiles in {directory}")
+        raise typer.Exit(1)
+
+    try:
+        settings = resolve_settings(
+            base_url=base_url,
+            model=model,
+            api_key=api_key,
+            temperature=temperature,
+            timeout=timeout,
+            retries=retries,
+            max_tokens=max_tokens,
+            seed=seed,
+            dotenv=Path.cwd() / ".env",
+        )
+    except PretextError as exc:
+        err.print(f"[bold red]error[/bold red] {exc}")
+        raise typer.Exit(1) from exc
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    client = Client(settings)
+    suffix = {"markdown": "md", "json": "json", "rich": "txt"}[fmt.value]
+    failures: list[tuple[str, str]] = []
+    totals = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+    for index, path in enumerate(profiles, start=1):
+        label = f"[cyan]{index}/{len(profiles)}[/cyan] {path.name}"
+        try:
+            prof = load_profile(path)
+            simulation = client.generate(
+                prof, channel=None, extra=extra
+            )
+        except PretextError as exc:
+            failures.append((path.name, str(exc).splitlines()[0]))
+            err.print(f"{label} [red]failed[/red] {failures[-1][1]}")
+            continue
+
+        for key in totals:
+            totals[key] += (client.last_usage or {}).get(key, 0)
+
+        target = out_dir / f"{path.stem}.{suffix}"
+        if fmt is OutputFormat.json:
+            body = render.to_json(simulation, prof, sections=selected)
+        elif fmt is OutputFormat.markdown:
+            body = render.to_markdown(simulation, prof, sections=selected)
+        else:
+            recording = render.console(no_color=True, width=100)
+            with recording.capture() as captured:
+                render.render_simulation(simulation, prof, recording, sections=selected)
+            body = captured.get()
+        target.write_text(body, encoding="utf-8")
+        err.print(f"{label} [green]ok[/green] {target.name}")
+
+    err.print()
+    err.print(f"wrote {len(profiles) - len(failures)}/{len(profiles)} to {out_dir}")
+    if usage:
+        err.print(
+            f"[dim]tokens: prompt {totals['prompt_tokens']} · "
+            f"completion {totals['completion_tokens']} · total {totals['total_tokens']}[/dim]"
+        )
+    for name, reason in failures:
+        err.print(f"[red]{name}[/red] {reason}")
+    if failures:
+        raise typer.Exit(1)

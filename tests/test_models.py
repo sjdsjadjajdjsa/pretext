@@ -236,3 +236,34 @@ def test_long_artifact_is_trimmed():
     )
     assert len(step.artifact) <= 300
     assert step.artifact.endswith("...")
+
+
+def test_provider_sets_base_url():
+    settings = resolve_settings(provider="venice", api_key="k", dotenv=None)
+    assert "venice.ai" in str(settings.base_url)
+    assert settings.endpoint.endswith("/chat/completions")
+
+
+def test_base_url_flag_beats_provider():
+    settings = resolve_settings(provider="venice", base_url="http://x.test/v1", api_key="k", dotenv=None)
+    assert str(settings.base_url).startswith("http://x.test")
+
+
+def test_unknown_provider():
+    with pytest.raises(ConfigError, match="unknown provider"):
+        resolve_settings(provider="wat", api_key="k", dotenv=None)
+
+
+def test_local_provider_gets_placeholder_key(monkeypatch, tmp_path):
+    monkeypatch.delenv("PRETEXT_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("PRETEXT_PROVIDER", raising=False)
+    settings = resolve_settings(provider="ollama", dotenv=tmp_path / "none")
+    assert settings.api_key == "local"
+    assert "11434" in str(settings.base_url)
+
+
+def test_provider_from_env(tmp_path, monkeypatch):
+    monkeypatch.setenv("PRETEXT_PROVIDER", "openrouter")
+    settings = resolve_settings(api_key="k", dotenv=tmp_path / "none")
+    assert "openrouter.ai" in str(settings.base_url)

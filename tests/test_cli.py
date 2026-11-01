@@ -483,3 +483,14 @@ def test_doctor_full(doctor):
     )
     assert result.exit_code == 0
     assert "schema" in flat_out(result)
+
+
+def test_generate_provider_flag(profile):
+    run("generate", profile, "--api-key", "sk-x", "--provider", "venice")
+    assert StubClient.calls[-1][3].startswith("https://api.venice.ai")
+
+
+def test_config_provider(doctor):
+    result = RUNNER.invoke(cli.app, ["config", "--provider", "openrouter", "--api-key", "k"])
+    assert result.exit_code == 0
+    assert "openrouter.ai" in flat_out(result)

@@ -44,7 +44,10 @@ profile.yaml ──load_profile──> Profile ──prompt.build_payload_messag
 tests run every one and assert the payload carries the profile fields.
 
 `resolve_settings` is the single place precedence lives: flag, then `PRETEXT_*`
-env, then `./.env`, then `OPENAI_API_KEY`, then defaults. Every new option needs a
+env, then `./.env`, then `OPENAI_API_KEY`, then defaults. Provider presets live in
+`PROVIDERS` and lose to an explicit `--base-url`; local providers (`LOCAL_PROVIDERS`)
+get the placeholder key `local` so no key is needed. Note `_env` takes the full
+variable name, `pick` adds the prefix. Every new option needs a
 row there, an env name, a CLI flag, and a `Settings` field, else it silently never
 resolves.
 

@@ -180,6 +180,15 @@ class Settings(BaseModel):
 
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_MODEL = "gpt-4o-mini"
+
+PROVIDERS: dict[str, str] = {
+    "openai": "https://api.openai.com/v1",
+    "openrouter": "https://openrouter.ai/api/v1",
+    "venice": "https://api.venice.ai/api/v1",
+    "ollama": "http://localhost:11434/v1",
+    "lmstudio": "http://localhost:1234/v1",
+}
+LOCAL_PROVIDERS = {"ollama", "lmstudio"}
 ENV_FILE = ".env"
 
 
@@ -208,6 +217,7 @@ def _dotenv_values(path: Path) -> dict[str, str]:
 
 def resolve_settings(
     *,
+    provider: str | None = None,
     base_url: str | None = None,
     model: str | None = None,
     api_key: str | None = None,
@@ -229,9 +239,19 @@ def resolve_settings(
         value = _env(key) or file_values.get(key)
         return value or None
 
+    chosen = (provider or pick(None, "PROVIDER") or "").strip().lower() or None
+    if chosen is not None and chosen not in PROVIDERS:
+        raise ConfigError(
+            f"unknown provider {chosen!r}; choose from {', '.join(PROVIDERS)}"
+        )
+
     resolved_url = pick(base_url, "BASE_URL")
+    if resolved_url is None and chosen is not None:
+        resolved_url = PROVIDERS[chosen]
     resolved_model = pick(model, "MODEL")
     resolved_key = pick(api_key, "API_KEY") or _env("OPENAI_API_KEY")
+    if not resolved_key and chosen in LOCAL_PROVIDERS:
+        resolved_key = "local"
 
     if resolved_url is None:
         resolved_url = DEFAULT_BASE_URL

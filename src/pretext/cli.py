@@ -16,6 +16,7 @@ from . import __version__, render
 from .client import Client, _content_of, extract_json
 from .models import (
     ENV_PREFIX,
+    PROVIDERS,
     Channel,
     ConfigError,
     PretextError,
@@ -116,6 +117,12 @@ def generate(
     api_key: str = typer.Option(
         None, "--api-key", "-k", help=f"Bearer token [{ENV_PREFIX}API_KEY, OPENAI_API_KEY]."
     ),
+    provider: str = typer.Option(
+        None,
+        "--provider",
+        "-p",
+        help=f"Preset base URL: {', '.join(PROVIDERS)}. --base-url wins.",
+    ),
     channel: Channel | None = typer.Option(
         None, "--channel", "-c", help="Force the opening channel."
     ),
@@ -176,6 +183,7 @@ def generate(
         if profile is not None:
             prof = _read_profile(profile)
         settings = resolve_settings(
+            provider=provider,
             base_url=base_url,
             model=model,
             api_key=api_key or ("unused" if saved is not None else None),
@@ -289,6 +297,7 @@ def example(
 
 @app.command("config")
 def show_config(
+    provider: str = typer.Option(None, "--provider", "-p", help=f"Preset: {', '.join(PROVIDERS)}."),
     base_url: str = typer.Option(None, "--base-url", "-u"),
     model: str = typer.Option(None, "--model", "-m"),
     api_key: str = typer.Option(None, "--api-key", "-k"),
@@ -299,7 +308,11 @@ def show_config(
     err = render.console(stderr=True)
     try:
         settings = resolve_settings(
-            base_url=base_url, model=model, api_key=api_key, dotenv=Path.cwd() / ".env"
+            provider=provider,
+            base_url=base_url,
+            model=model,
+            api_key=api_key,
+            dotenv=Path.cwd() / ".env",
         )
     except ConfigError as exc:
         err.print(f"[bold red]error[/bold red] {exc}")
@@ -329,6 +342,12 @@ def batch(
     model: str = typer.Option(None, "--model", "-m", help=f"Model name [{ENV_PREFIX}MODEL]."),
     api_key: str = typer.Option(
         None, "--api-key", "-k", help=f"Bearer token [{ENV_PREFIX}API_KEY, OPENAI_API_KEY]."
+    ),
+    provider: str = typer.Option(
+        None,
+        "--provider",
+        "-p",
+        help=f"Preset base URL: {', '.join(PROVIDERS)}. --base-url wins.",
     ),
     temperature: float = typer.Option(None, "--temperature", "-t", min=0.0, max=2.0),
     max_tokens: int = typer.Option(None, "--max-tokens", min=256, max=16000),
@@ -360,6 +379,7 @@ def batch(
 
     try:
         settings = resolve_settings(
+            provider=provider,
             base_url=base_url,
             model=model,
             api_key=api_key,
@@ -430,6 +450,12 @@ def doctor(
     api_key: str = typer.Option(
         None, "--api-key", "-k", help=f"Bearer token [{ENV_PREFIX}API_KEY, OPENAI_API_KEY]."
     ),
+    provider: str = typer.Option(
+        None,
+        "--provider",
+        "-p",
+        help=f"Preset base URL: {', '.join(PROVIDERS)}. --base-url wins.",
+    ),
     full: bool = typer.Option(False, "--full", help="Also run one real simulation."),
     no_color: bool = typer.Option(False, "--no-color"),
 ) -> None:
@@ -444,7 +470,11 @@ def doctor(
 
     try:
         settings = resolve_settings(
-            base_url=base_url, model=model, api_key=api_key, dotenv=Path.cwd() / ".env"
+            provider=provider,
+            base_url=base_url,
+            model=model,
+            api_key=api_key,
+            dotenv=Path.cwd() / ".env",
         )
         record("configuration", "pass", f"{settings.base_url} · {settings.model}")
     except PretextError as exc:

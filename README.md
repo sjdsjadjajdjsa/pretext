@@ -70,6 +70,10 @@ export PRETEXT_BASE_URL=http://localhost:11434/v1   # local proxy, if you prefer
 export PRETEXT_MODEL=gpt-oss:20b
 ```
 
+Or name a known host instead of the URL: `--provider openai|openrouter|venice|ollama|lmstudio`
+(`PRETEXT_PROVIDER`), which fills the base URL. An explicit `--base-url` wins. Local
+providers need no key.
+
 `pretext config` shows what resolves, with the key masked.
 
 ## Profile
@@ -153,7 +157,7 @@ the exit code is `1` if anything failed. Endpoint flags are the same as `generat
 
 First hit wins:
 
-1. Flags (`--base-url`, `--model`, `--api-key`)
+1. Flags (`--base-url`, `--model`, `--api-key`, `--provider`)
 2. Environment: the same names under `PRETEXT_` (`PRETEXT_API_KEY`, `PRETEXT_MODEL`, ...)
 3. `.env` in the working directory
 4. `OPENAI_API_KEY` for the key, then `https://api.openai.com/v1` and `gpt-4o-mini`

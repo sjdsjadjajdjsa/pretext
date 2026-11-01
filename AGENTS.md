@@ -37,7 +37,7 @@ profile.yaml ──load_profile──> Profile ──prompt.build_payload_messag
 | `prompt.py` | System prompt carrying the JSON schema, and the user prompt |
 | `client.py` | httpx POST, retry policy, JSON extraction, response validation |
 | `render.py` | Rich panels (section-gated), markdown/JSON serializers, `DISCLAIMER` |
-| `docs/` | README demo and social preview, both generated, never hand-edited |
+| `docs/` | README demo and social preview (generated), plus the runner guide |
 | `cli.py` | Typer commands: `generate`, `batch`, `validate`, `example`, `config` |
 | `data/example-profile.yaml` | Fictional persona used by `pretext example` and the README |
 

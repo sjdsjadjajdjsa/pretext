@@ -4,6 +4,7 @@ All notable changes. This project follows semantic versioning.
 
 ## Unreleased
 
+- `docs/running-an-exercise.md`: authorization, delivery, scoring, debrief
 - Model corpus with structural invariant tests, and clear errors when a thinking
   model runs out of output budget
 - `schema` dumps the JSON Schema for integrators and drift checks
@@ -25,6 +26,7 @@ All notable changes. This project follows semantic versioning.
 - Thinking models that exhaust their budget now say so instead of returning empty
 - Long objectives trimmed like artifacts
 - mypy, `ruff format`, a 97% coverage gate and a release workflow in CI
+- `docs/running-an-exercise.md`: authorization, delivery, scoring, debrief
 - Model corpus with structural invariant tests
 
 ## 0.2.0

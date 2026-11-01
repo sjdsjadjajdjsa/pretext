@@ -41,6 +41,9 @@ does not depend on whoever wrote the scenario remembering to add it.
 | Escalation path | 3-6 stages across channels, each handing over a new prop or introducing a new person |
 | Red flags | Observable tells tied to this exercise, each with a defender action, including one only clear in hindsight |
 
+`docs/running-an-exercise.md` covers authorization, delivery, scoring and the
+debrief, which is the half the tool cannot do.
+
 Every output carries a disclaimer. [`sample-output.md`](sample-output.md) is a
 complete Markdown export; [`docs/demo.png`](docs/demo.png) is the terminal view.
 

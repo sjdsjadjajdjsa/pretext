@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterable
 
-from rich.console import Console, Group
+from rich.console import Console, Group, RenderableType
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.rule import Rule
@@ -82,7 +82,7 @@ def render_simulation(
     if "opening" not in sections:
         return _render_tail(simulation, out, sections)
 
-    message_body: list[object] = []
+    message_body: list[RenderableType] = []
     if simulation.subject_line:
         message_body.append(Text(f"Subject: {simulation.subject_line}", style="bold"))
         message_body.append(Text(""))

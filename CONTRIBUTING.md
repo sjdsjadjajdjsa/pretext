@@ -9,6 +9,7 @@ welcome.
 uv sync --extra dev
 uv run pytest --cov=pretext   # CI fails under 97% coverage
 uv run ruff check src tests
+uv run mypy
 ```
 
 The suite is offline: `httpx.MockTransport` in `tests/test_client.py` and a stubbed

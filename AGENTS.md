@@ -10,6 +10,7 @@ OpenAI-compatible chat completions endpoint.
 uv sync --extra dev
 uv run pytest                 # suite is offline, httpx.MockTransport only
 uv run ruff check src tests
+uv run mypy
 uv run pretext --help
 ```
 

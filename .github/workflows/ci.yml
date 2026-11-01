@@ -25,6 +25,7 @@ jobs:
           enable-cache: true
       - run: uv sync --extra dev --locked
       - run: uv run ruff check src tests
+      - run: uv run mypy
       - run: uv run pytest --cov=pretext --cov-fail-under=97
       - run: uv run pretext example -o /tmp/persona.yaml && uv run pretext validate /tmp/persona.yaml
       - run: uv run pretext generate /tmp/persona.yaml --api-key x --dry-run > /dev/null

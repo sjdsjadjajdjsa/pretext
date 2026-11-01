@@ -185,6 +185,7 @@ Diagnostics go to stderr, keeping stdout pipeable: `pretext generate p.yaml -f j
 ```sh
 uv run pytest --cov=pretext # offline: MockTransport and a stubbed client
 uv run ruff check src tests
+uv run mypy
 ```
 
 The suite needs no key. `conftest.py` chdirs each test into a temp directory so your

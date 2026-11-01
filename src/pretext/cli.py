@@ -155,7 +155,7 @@ def generate(
     out = render.console(no_color=no_color)
     err = render.console(no_color=no_color, stderr=True)
 
-    selected = render.SECTIONS
+    selected: tuple[str, ...] = render.SECTIONS
     if sections is not None:
         selected = tuple(part.strip() for part in sections.split(",") if part.strip())
         unknown = [part for part in selected if part not in render.SECTIONS]
@@ -360,7 +360,7 @@ def batch(
     """Generate one exercise per profile in a directory."""
 
     err = render.console(no_color=no_color, stderr=True)
-    selected = render.SECTIONS
+    selected: tuple[str, ...] = render.SECTIONS
     if sections is not None:
         selected = tuple(part.strip() for part in sections.split(",") if part.strip())
         unknown = [part for part in selected if part not in render.SECTIONS]

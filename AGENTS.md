@@ -48,6 +48,8 @@ env, then `./.env`, then `OPENAI_API_KEY`, then defaults. Every new option needs
 row there, an env name, a CLI flag, and a `Settings` field, else it silently never
 resolves.
 
+`doctor` runs its probes through `Client.list_models` and `Client.ping_json` so they
+stay testable via `MockTransport`; `--full` is the only part that calls `generate`.
 `batch` mirrors `generate`'s endpoint flags, skips `_`-prefixed files, isolates
 per-profile failures, and exits 1 if any profile failed. Keep the summary on stderr
 and never abort the run on the first failure.

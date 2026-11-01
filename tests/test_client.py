@@ -340,3 +340,34 @@ def test_connect_error_exhausted(monkeypatch):
 
     with pytest.raises(APIError, match="connection failed"):
         client_with(handler, retries=1).generate(_profile())
+
+
+def test_list_models_parses_ids():
+    def handler(request):
+        assert request.url.path.endswith("/models")
+        return httpx.Response(200, json={"data": [{"id": "a"}, {"id": "b"}, {}]})
+
+    assert client_with(handler).list_models() == ["a", "b"]
+
+
+def test_list_models_404_means_unsupported():
+    assert client_with(lambda r: httpx.Response(404, json={})).list_models() == []
+
+
+def test_list_models_connect_failure(monkeypatch):
+    monkeypatch.setattr("pretext.client.time.sleep", lambda _: None)
+
+    def handler(request):
+        raise httpx.ConnectError("refused", request=request)
+
+    with pytest.raises(APIError, match="model list unreachable"):
+        client_with(handler).list_models()
+
+
+def test_ping_json_returns_content():
+    def handler(request):
+        seen = json.loads(request.content)
+        assert seen["response_format"] == {"type": "json_object"}
+        return chat_response('{"ok": true}')
+
+    assert client_with(handler).ping_json() == '{"ok": true}'

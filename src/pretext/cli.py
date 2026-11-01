@@ -10,6 +10,7 @@ from pathlib import Path
 
 import typer
 from pydantic import ValidationError
+from rich.table import Table
 
 from . import __version__, render
 from .client import Client, _content_of, extract_json
@@ -418,3 +419,99 @@ def batch(
         err.print(f"[red]{name}[/red] {reason}")
     if failures:
         raise typer.Exit(1)
+
+
+@app.command()
+def doctor(
+    base_url: str = typer.Option(
+        None, "--base-url", "-u", help=f"API root [{ENV_PREFIX}BASE_URL]."
+    ),
+    model: str = typer.Option(None, "--model", "-m", help=f"Model name [{ENV_PREFIX}MODEL]."),
+    api_key: str = typer.Option(
+        None, "--api-key", "-k", help=f"Bearer token [{ENV_PREFIX}API_KEY, OPENAI_API_KEY]."
+    ),
+    full: bool = typer.Option(False, "--full", help="Also run one real simulation."),
+    no_color: bool = typer.Option(False, "--no-color"),
+) -> None:
+    """Diagnose the endpoint before spending a run on it."""
+
+    out = render.console(no_color=no_color)
+    err = render.console(no_color=no_color, stderr=True)
+    results: list[tuple[str, str, str]] = []
+
+    def record(name: str, status: str, detail: str) -> None:
+        results.append((name, status, detail))
+
+    try:
+        settings = resolve_settings(
+            base_url=base_url, model=model, api_key=api_key, dotenv=Path.cwd() / ".env"
+        )
+        record("configuration", "pass", f"{settings.base_url} · {settings.model}")
+    except PretextError as exc:
+        record("configuration", "fail", str(exc))
+        _render_checks(results, out)
+        raise typer.Exit(1) from exc
+
+    if settings.base_url.scheme != "https":
+        record("tls", "warn", "not HTTPS; the key is sent in clear text")
+    else:
+        record("tls", "pass", "HTTPS")
+
+    client = Client(settings)
+    try:
+        models = client.list_models()
+        record("endpoint", "pass", "reached /models")
+        if not models:
+            record("model", "warn", "endpoint lists no models; cannot verify the name")
+        elif settings.model in models:
+            record("model", "pass", f"{settings.model} is served")
+        else:
+            near = [m for m in models if m.split("/")[-1] in settings.model.split("/")[-1]][:3]
+            hint = f"; did you mean {', '.join(near)}" if near else ""
+            record("model", "fail", f"{settings.model} is not in the model list{hint}")
+    except PretextError as exc:
+        record("endpoint", "fail", str(exc))
+
+    try:
+        parsed = extract_json(client.ping_json())
+        record("json mode", "pass", f"returned {', '.join(sorted(parsed)) or 'an empty object'}")
+    except PretextError as exc:
+        record("json mode", "fail", str(exc))
+
+    if full:
+        probe = Profile(
+            name="Test Persona",
+            role="Analyst",
+            company="Northwind",
+            communication_style="Plain and brief",
+        )
+        try:
+            simulation = client.generate(probe)
+            record(
+                "schema",
+                "pass",
+                f"{len(simulation.escalation_path)} stages, {len(simulation.red_flags)} flags",
+            )
+        except PretextError as exc:
+            record("schema", "fail", str(exc).splitlines()[0])
+
+    _render_checks(results, out)
+    if any(status == "fail" for _, status, _ in results):
+        raise typer.Exit(1)
+    if not full:
+        err.print("[dim]add --full to test schema adherence too[/dim]")
+
+
+def _render_checks(results: list[tuple[str, str, str]], out) -> None:
+    marks = {
+        "pass": "[green]pass[/green]",
+        "warn": "[yellow]warn[/yellow]",
+        "fail": "[red]fail[/red]",
+    }
+    table = Table(show_header=True, box=None, header_style="bold")
+    table.add_column("check")
+    table.add_column("")
+    table.add_column("detail", overflow="fold")
+    for name, status, detail in results:
+        table.add_row(name, marks[status], detail)
+    out.print(table)

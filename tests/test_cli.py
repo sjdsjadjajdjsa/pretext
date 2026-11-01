@@ -418,3 +418,68 @@ def test_batch_usage_totals(tmp_path):
     result = run("batch", FIXTURE_DIR, "--out-dir", tmp_path, "--api-key", "sk-x", "--usage")
     assert result.exit_code == 0
     assert "total 12" in flat(result)
+
+
+class DoctorStub(StubClient):
+    models: ClassVar[list[str]] = ["test-model"]
+    ping_result: ClassVar[str] = '{"ok": true}'
+
+    def list_models(self):
+        return DoctorStub.models
+
+    def ping_json(self):
+        return DoctorStub.ping_result
+
+
+@pytest.fixture
+def doctor(monkeypatch):
+    DoctorStub.models = ["test-model"]
+    DoctorStub.ping_result = '{"ok": true}'
+    monkeypatch.setattr(cli, "Client", DoctorStub)
+    monkeypatch.delenv("PRETEXT_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+
+def test_doctor_all_pass(doctor):
+    result = RUNNER.invoke(
+        cli.app, ["doctor", "--api-key", "k", "--base-url", "https://x.test/v1", "--model", "test-model"]
+    )
+    assert result.exit_code == 0
+    assert "test-model is served" in flat_out(result)
+    assert "add --full" in flat(result)
+
+
+def test_doctor_flags_unknown_model(doctor):
+    result = RUNNER.invoke(
+        cli.app, ["doctor", "--api-key", "k", "--base-url", "https://x.test/v1", "--model", "other"]
+    )
+    assert result.exit_code == 1
+    assert "not in the model list" in flat_out(result)
+
+
+def test_doctor_bad_json(doctor):
+    DoctorStub.ping_result = "not json"
+    result = RUNNER.invoke(cli.app, ["doctor", "--api-key", "k", "--base-url", "https://x.test/v1"])
+    assert result.exit_code == 1
+    assert "json mode" in flat_out(result)
+
+
+def test_doctor_plain_http_warns(doctor):
+    result = RUNNER.invoke(
+        cli.app, ["doctor", "--api-key", "k", "--base-url", "http://x.test/v1", "--model", "test-model"]
+    )
+    assert "not HTTPS" in flat_out(result)
+
+
+def test_doctor_missing_key(doctor):
+    result = RUNNER.invoke(cli.app, ["doctor"])
+    assert result.exit_code == 1
+    assert "no API key" in flat_out(result)
+
+
+def test_doctor_full(doctor):
+    result = RUNNER.invoke(
+        cli.app, ["doctor", "--api-key", "k", "--base-url", "https://x.test/v1", "--model", "test-model", "--full"]
+    )
+    assert result.exit_code == 0
+    assert "schema" in flat_out(result)

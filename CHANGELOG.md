@@ -4,6 +4,8 @@ All notable changes. This project follows semantic versioning.
 
 ## Unreleased
 
+- `doctor` probes config, TLS, reachability, model availability and JSON mode,
+  with `--full` to test schema adherence
 - `batch` generates one exercise per profile in a directory, continuing past failures
 - `--dry-run --out` writes the prompt instead of ignoring `--out`
 - Verified against Venice (venice-uncensored-1-2, qwen3-235b-a22b-instruct)

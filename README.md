@@ -101,6 +101,7 @@ rejected so typos surface early. Fixture personas live in
 | `validate PROFILE` | Validate without calling the API |
 | `example` | Print the bundled fictional profile |
 | `batch DIR` | One exercise per `*.yaml` in DIR (files starting `_` are skipped) |
+| `doctor` | Probe the endpoint: config, TLS, reachability, model, JSON mode |
 | `config` | Show resolved settings, key masked |
 
 Flags on `generate`:
@@ -124,6 +125,16 @@ Exit codes: `0` success, `1` bad profile/config/API/schema failure, `2` usage er
 
 `--from-file` accepts a `--format json` export, a bare simulation object, or a raw
 chat completion body, so formatting work stays free and offline.
+
+## Diagnose first
+
+```sh
+pretext doctor              # config, TLS, /models, JSON mode
+pretext doctor --full       # also runs one real simulation through the schema
+```
+
+Exits `1` on any failure and prints the provider's own error, so a wrong model name
+or a blocked key shows up before a batch run wastes retries.
 
 ## Batch runs
 

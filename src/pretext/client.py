@@ -148,6 +148,42 @@ class Client:
         raise last or APIError("request failed")
 
 
+    def list_models(self) -> list[str]:
+
+        """Fetch model ids from the endpoint; empty when unsupported."""
+
+        headers = {"Authorization": f"Bearer {self.settings.api_key}", "User-Agent": USER_AGENT}
+        with httpx.Client(timeout=self.settings.timeout, transport=self._transport) as client:
+            try:
+                base = self.settings.endpoint.rsplit("/", 2)[0]
+                response = client.get(f"{base}/models", headers=headers)
+            except httpx.HTTPError as exc:
+                raise APIError(f"model list unreachable: {exc}") from exc
+        if response.status_code == 404:
+            return []
+        body = _decode(response)
+        entries = body.get("data", [])
+        return [
+            str(entry["id"])
+            for entry in entries
+            if isinstance(entry, dict) and entry.get("id")
+        ]
+
+
+    def ping_json(self) -> str:
+        """Ask for one tiny JSON object; returns the raw content."""
+
+        payload = {
+            "model": self.settings.model,
+            "messages": [
+                {"role": "user", "content": 'Reply with exactly {"ok": true} and nothing else.'}
+            ],
+            "max_tokens": 40,
+            "temperature": 0,
+            "response_format": {"type": "json_object"},
+        }
+        return _content_of(self._request(payload))
+
 def _backoff(attempt: int, retry_after: str | None) -> float:
     if retry_after:
         try:
@@ -183,3 +219,4 @@ def _error_text(response: httpx.Response) -> str:
         if body.get("message"):
             return str(body["message"])[:300]
     return str(body)[:300]
+

@@ -174,7 +174,7 @@ class Client:
         payload = {
             "model": self.settings.model,
             "messages": [
-                {"role": "user", "content": 'Reply with exactly {"ok": true} and nothing else.'}
+                {"role": "user", "content": 'Reply with JSON only, exactly {"ok": true}.'}
             ],
             "max_tokens": 40,
             "temperature": 0,
@@ -204,6 +204,25 @@ def _decode(response: httpx.Response) -> dict[str, Any]:
     return body
 
 
+def _upstream_message(error: dict[str, Any]) -> str | None:
+    """Providers wrap the real cause in metadata.raw; surface it when present."""
+
+    metadata = error.get("metadata")
+    if not isinstance(metadata, dict):
+        return None
+    raw = metadata.get("raw")
+    if not isinstance(raw, str):
+        return None
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return raw.strip()[:300] or None
+    inner = parsed.get("error") if isinstance(parsed, dict) else None
+    if isinstance(inner, dict) and inner.get("message"):
+        return str(inner["message"])[:300]
+    return None
+
+
 def _error_text(response: httpx.Response) -> str:
     try:
         body = response.json()
@@ -211,6 +230,10 @@ def _error_text(response: httpx.Response) -> str:
         return response.text.strip()[:300] or "<empty body>"
     if isinstance(body, dict):
         error = body.get("error")
+        if isinstance(error, dict):
+            upstream = _upstream_message(error)
+            if upstream:
+                return upstream
         if isinstance(error, dict) and error.get("message"):
             return str(error["message"])[:300]
         if isinstance(error, str):

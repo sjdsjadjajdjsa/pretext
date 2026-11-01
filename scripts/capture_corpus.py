@@ -1,6 +1,6 @@
 """Capture model outputs into the regression corpus.
 
-Usage: uv run python scripts/capture_corpus.py MODEL [MODEL ...]
+Usage: [PRETEXT_ENV_FILE=.env.other] uv run python scripts/capture_corpus.py MODEL ...
 
 Needs a configured endpoint and key (see README). The corpus is checked in so the
 suite stays offline; re-run this after a prompt change and read the diff.
@@ -9,6 +9,7 @@ suite stays offline; re-run this after a prompt change and read the diff.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -28,8 +29,13 @@ def main(models: list[str]) -> int:
     CORPUS.mkdir(parents=True, exist_ok=True)
     profile = load_profile(PROFILE)
 
+    env_file = os.environ.get("PRETEXT_ENV_FILE")
     for model in models:
-        settings = resolve_settings(model=model, max_tokens=12000)
+        settings = resolve_settings(
+            model=model,
+            max_tokens=12000,
+            dotenv=Path(env_file) if env_file else Path.cwd() / ".env",
+        )
         simulation = Client(settings).generate(profile)
         target = CORPUS / f"{model.replace('/', '__')}.json"
         target.write_text(

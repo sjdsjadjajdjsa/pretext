@@ -54,7 +54,9 @@ resolves.
 
 `doctor` runs its probes through `Client.list_models` and `Client.ping_json` so they
 stay testable via `MockTransport`; `--full` is the only part that calls `generate`.
-`batch` mirrors `generate`'s endpoint flags, skips `_`-prefixed files, isolates
+`batch` runs profiles in a bounded thread pool (default 4) and one `Client` per
+profile, because `Client.last_usage` is per-instance. Printing stays on the calling
+thread. `batch` mirrors `generate`'s endpoint flags, skips `_`-prefixed files, isolates
 per-profile failures, and exits 1 if any profile failed. Keep the summary on stderr
 and never abort the run on the first failure.
 
@@ -153,6 +155,9 @@ monkeypatches `time.sleep`; add cases there rather than hitting the network.
 without HTTP. Cover the failure path (retry exhaustion, schema violation, bad
 key) whenever you touch the client or schema. `tests/test_models.py` owns
 precedence and validation edge cases.
+
+`--env-file` swaps the dotenv source; note a `PRETEXT_BASE_URL` in that file beats a
+`--provider` preset, which is what trips up mixed setups.
 
 `--from-file` bypasses the API entirely for rendering work. It accepts our own
 export, a bare simulation, or a chat body, and needs no key; the profile is taken

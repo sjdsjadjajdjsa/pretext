@@ -10,3 +10,6 @@ dist/
 .crush/
 .empryo/
 .coverage
+
+.env.*
+!.env.example

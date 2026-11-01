@@ -1,0 +1,76 @@
+{
+  "model": "openai/gpt-4o-mini",
+  "profile": {
+    "name": "Ruben Alcaraz",
+    "role": "IT Service Desk Technician",
+    "company": "Kestrel Freight",
+    "communication_style": "Terse, ticket numbers first, drops greetings",
+    "department": null,
+    "tenure": null,
+    "reports_to": null,
+    "systems": [
+      "ticketing queue",
+      "endpoint management"
+    ],
+    "notes": null
+  },
+  "simulation": {
+    "pretext": "The attacker poses as a member of the Kestrel Freight Systems Integration Team, leveraging a recently published company press release that detailed upcoming changes in IT policies. Using this information, the attacker registered a fake email address (systems_integration@kestrelfreight.co) to appear as a legitimate internal contact. Today\u2019s outreach is prompted by a supposed audit of the ticketing queue, specifically targeting ticket #89234, which the attacker claims is flagged for immediate attention. The attacker emphasizes that Ruben's role as an IT Service Desk Technician is crucial for resolving the issues outlined in the ticket, suggesting that collaboration is necessary to ensure compliance with the new policies. The attacker utilizes the urgency of the audit to create pressure for Ruben to respond quickly and provide access to endpoint management systems, claiming that it is essential for resolving the ticket in question.",
+    "opening_message": "Ruben, this is Jordan from the Systems Integration Team. We need to resolve ticket #89234 urgently. Please provide me with access to the endpoint management systems so I can push through the necessary updates. My email is systems_integration@kestrelfreight.co.",
+    "subject_line": "Kestrel Freight Ticket #89234 Update Required",
+    "escalation_path": [
+      {
+        "stage": 1,
+        "channel": "phone",
+        "action": "Call Ruben again, using urgency about the ticket.",
+        "goal": "Request a quick call-back for verification.",
+        "artifact": "Reference new ticket #89234 details."
+      },
+      {
+        "stage": 2,
+        "channel": "email",
+        "action": "Send follow-up email with a calendar invite.",
+        "goal": "Schedule a meeting to discuss the ticket in detail.",
+        "artifact": "Invite that includes a fake agenda focused on compliance."
+      },
+      {
+        "stage": 3,
+        "channel": "chat",
+        "action": "Message Ruben on internal chat.",
+        "goal": "Ask for confirmation of endpoint access.",
+        "artifact": "Chat message referencing the meeting scheduled."
+      },
+      {
+        "stage": 4,
+        "channel": "in_person",
+        "action": "Visit Ruben\u2019s office to discuss ticket.",
+        "goal": "Obtain physical confirmation for access.",
+        "artifact": "Show fake identification as a Systems Integration staff member."
+      }
+    ],
+    "red_flags": [
+      {
+        "title": "Unrecognized email address from internal team.",
+        "why_it_matters": "Internal team members should have company-standard email formats.",
+        "defender_action": "Verify the email address with IT security."
+      },
+      {
+        "title": "Ticket number reference seems out of context.",
+        "why_it_matters": "If Ruben has no knowledge of the ticket, it may indicate a phishing attempt.",
+        "defender_action": "Check the ticketing system for the referenced ticket."
+      },
+      {
+        "title": "Urgent requests for access without proper verification.",
+        "why_it_matters": "Legitimate IT requests typically follow established verification protocols.",
+        "defender_action": "Ensure any requests for access are validated through official channels."
+      },
+      {
+        "title": "Pressure to act quickly.",
+        "why_it_matters": "Phishing attempts often create a false sense of urgency to bypass caution.",
+        "defender_action": "Take a moment to assess the request and consult with colleagues."
+      }
+    ],
+    "difficulty": 3,
+    "objective": "Gain access to sensitive endpoint management systems."
+  }
+}

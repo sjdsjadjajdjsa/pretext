@@ -115,7 +115,8 @@ rejected so typos surface early. Fixture personas live in
 | `schema` | Print the JSON Schema model output must satisfy (`--all` adds the profile) |
 | `config` | Show resolved settings, key masked |
 
-Flags on `generate`:
+Flags on `generate` (endpoint, `--env-file`, `--sections` and `--format` also apply
+to `batch`):
 
 | Flag | Effect |
 | ---- | ------ |
@@ -129,6 +130,7 @@ Flags on `generate`:
 | `--usage` | Token counts on stderr |
 | `--base-url`, `--model`, `--api-key` | Override endpoint settings |
 | `--temperature`, `--max-tokens`, `--timeout`, `--retries`, `--seed` | Sampling and transport |
+| `--env-file` | Read a different dotenv file (default `./.env`) |
 | `--no-color` | Plain terminal output |
 
 Exit codes: `0` success, `1` bad profile/config/API/schema failure, `2` usage error,
@@ -156,7 +158,8 @@ continuing past failures:
 pretext batch profiles/ --out-dir packet/ --format markdown
 ```
 
-Progress and a `wrote 7/9` summary go to stderr, the failure reasons are listed, and
+Profiles run four at a time by default (`-j/--concurrency`, max 8); progress and a
+`wrote 7/9` summary go to stderr, the failure reasons are listed, and
 the exit code is `1` if anything failed. Endpoint flags are the same as `generate`;
 `--sections`, `--format` and `--usage` apply to the run as a whole.
 
@@ -166,7 +169,7 @@ First hit wins:
 
 1. Flags (`--base-url`, `--model`, `--api-key`, `--provider`)
 2. Environment: the same names under `PRETEXT_` (`PRETEXT_API_KEY`, `PRETEXT_MODEL`, ...)
-3. `.env` in the working directory
+3. `.env` in the working directory, or the file given to `--env-file`
 4. `OPENAI_API_KEY` for the key, then `https://api.openai.com/v1` and `gpt-4o-mini`
 
 The key is never printed and never written to output.

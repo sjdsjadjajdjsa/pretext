@@ -424,3 +424,33 @@ def test_empty_content_with_length_hint():
 
     with pytest.raises(APIError, match="raise --max-tokens"):
         client_with(handler).generate(_profile())
+
+
+def test_error_text_surfaces_upstream_metadata():
+    from pretext.client import _error_text
+
+    body = {
+        "error": {
+            "message": "Provider returned error",
+            "metadata": {"raw": json.dumps({"error": {"message": "real cause"}})},
+        }
+    }
+    assert _error_text(httpx.Response(400, json=body)) == "real cause"
+
+
+def test_error_text_keeps_plain_metadata_raw():
+    from pretext.client import _error_text
+
+    body = {"error": {"message": "wrapped", "metadata": {"raw": "raw text"}}}
+    assert _error_text(httpx.Response(400, json=body)) == "raw text"
+
+
+def test_ping_mentions_json():
+    seen = {}
+
+    def handler(request):
+        seen.update(json.loads(request.content))
+        return chat_response('{"ok": true}')
+
+    client_with(handler).ping_json()
+    assert "json" in seen["messages"][0]["content"].lower()

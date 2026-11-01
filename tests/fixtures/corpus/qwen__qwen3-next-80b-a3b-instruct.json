@@ -1,0 +1,88 @@
+{
+  "model": "qwen/qwen3-next-80b-a3b-instruct",
+  "profile": {
+    "name": "Ruben Alcaraz",
+    "role": "IT Service Desk Technician",
+    "company": "Kestrel Freight",
+    "communication_style": "Terse, ticket numbers first, drops greetings",
+    "department": null,
+    "tenure": null,
+    "reports_to": null,
+    "systems": [
+      "ticketing queue",
+      "endpoint management"
+    ],
+    "notes": null
+  },
+  "simulation": {
+    "pretext": "The attacker harvested a real ticket number (SR-78219) from Kestrel Freight\u2019s public-facing support portal, which listed a recent Windows 10 update failure on endpoint WIN10-KEST-0442. They registered the domain kestrel-updates[.]com, mimicking the company\u2019s internal patching domain, and created a fake Microsoft Endpoint Manager alert that appeared to originate from Kestrel\u2019s own SCCM server. The attacker noted Ruben\u2019s recent shift schedule from the company\u2019s internal calendar and timed the outreach for 10:17 AM, when service desk technicians are typically swamped with morning ticket surges. The pretext leverages Ruben\u2019s role as the first-line responder for endpoint issues \u2014 the message implies the ticket has been escalated due to compliance risk, and only he can approve the override to force the patch via the internal tool.",
+    "opening_message": "SR-78219: Patch override required for WIN10-KEST-0442. Execute script from https://kestrel-updates[.]com/patch/78219.ps1 via Endpoint Manager immediately. Failure triggers auto-ticket to SecOps. \u2014 KestrelIT-PatchSys",
+    "subject_line": "SR-78219: Urgent Patch Required for Win10-KEST-0442",
+    "escalation_path": [
+      {
+        "stage": 1,
+        "channel": "email",
+        "action": "Send follow-up email with fake SCCM console screenshot showing pending approval for SR-78219",
+        "goal": "Reinforce legitimacy of the patch request by simulating internal tool UI",
+        "artifact": "screenshot_SCCM_SR78219.png"
+      },
+      {
+        "stage": 2,
+        "channel": "phone",
+        "action": "Call from spoofed number (ext. 4421) posing as 'Derek Lin, Endpoint Security Lead'",
+        "goal": "Apply pressure by claiming SecOps is already alerted and the ticket is being flagged for audit violation",
+        "artifact": "null"
+      },
+      {
+        "stage": 3,
+        "channel": "sms",
+        "action": "Send SMS with shortened link to malicious script: bit.ly/kestrel-patch-78219",
+        "goal": "Bypass email filters and push target to act via mobile device",
+        "artifact": "null"
+      },
+      {
+        "stage": 4,
+        "channel": "chat",
+        "action": "Initiate Teams chat from fake account 'Derek.Lin@kestrelfreight.com' with pre-filled script and command: 'Run this in elevated PowerShell \u2014 confirmed by SecOps'",
+        "goal": "Final push using internal comms platform to mimic peer collaboration",
+        "artifact": "patch_78219.ps1"
+      },
+      {
+        "stage": 5,
+        "channel": "in_person",
+        "action": "Approach Ruben at desk wearing a fake Kestrel IT badge, holding a printed ticket with QR code linking to script",
+        "goal": "Exploit trust in physical presence to override skepticism",
+        "artifact": "printed_SR78219_with_QR.pdf"
+      }
+    ],
+    "red_flags": [
+      {
+        "title": "Domain kestrel-updates[.]com used in patch link",
+        "why_it_matters": "Kestrel Freight uses only internal domains (e.g., patch.kestrelfreight.local) for endpoint management; external domains are never used for patch scripts",
+        "defender_action": "Verify all patch URLs against the approved SCCM distribution point list"
+      },
+      {
+        "title": "Script named patch_78219.ps1 delivered via multiple channels",
+        "why_it_matters": "Legitimate patches are deployed via automated policy, never as standalone scripts sent via email, SMS, or chat",
+        "defender_action": "Block and report any script file named after a ticket number"
+      },
+      {
+        "title": "Derek Lin appears as Endpoint Security Lead on phone and Teams but has no profile in Active Directory",
+        "why_it_matters": "No employee named Derek Lin exists in Kestrel\u2019s HR directory or Teams org chart",
+        "defender_action": "Cross-check sender names in internal directories before acting on requests"
+      },
+      {
+        "title": "Ticket SR-78219 is referenced as 'escalated' but shows no history in the ticketing system",
+        "why_it_matters": "The ticket number exists but was never assigned to Ruben or escalated \u2014 it was scraped from a public page",
+        "defender_action": "Always validate ticket existence and status in the internal system before responding"
+      },
+      {
+        "title": "QR code on printed ticket links to same malicious domain",
+        "why_it_matters": "The attacker reused the same phishing infrastructure across digital and physical channels, creating a traceable fingerprint",
+        "defender_action": "Scan all QR codes from unverified sources with a dedicated URL analyzer before access"
+      }
+    ],
+    "difficulty": 4,
+    "objective": "Trick Ruben into executing a malicious PowerShell script disguised as a patch deployment via endpoint management tool, granting attacker initial access to Kestrel Freight's internal network."
+  }
+}

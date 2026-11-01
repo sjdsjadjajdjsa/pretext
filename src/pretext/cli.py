@@ -5,6 +5,7 @@ from __future__ import annotations
 import difflib
 import json
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from enum import StrEnum
 from importlib import resources
 from pathlib import Path
@@ -145,6 +146,9 @@ def generate(
         "-p",
         help=f"Preset base URL: {', '.join(PROVIDERS)}. --base-url wins.",
     ),
+    env_file: Path = typer.Option(
+        None, "--env-file", help="Dotenv file to read instead of ./.env."
+    ),
     channel: Channel | None = typer.Option(
         None, "--channel", "-c", help="Force the opening channel."
     ),
@@ -205,7 +209,7 @@ def generate(
             retries=retries,
             max_tokens=max_tokens,
             seed=seed,
-            dotenv=Path.cwd() / ".env",
+            dotenv=env_file or Path.cwd() / ".env",
         )
     except PretextError as exc:
         err.print(f"[bold red]error[/bold red] {exc}")
@@ -309,6 +313,9 @@ def example(
 @app.command("config")
 def show_config(
     provider: str = typer.Option(None, "--provider", "-p", help=f"Preset: {', '.join(PROVIDERS)}."),
+    env_file: Path = typer.Option(
+        None, "--env-file", help="Dotenv file to read instead of ./.env."
+    ),
     base_url: str = typer.Option(None, "--base-url", "-u"),
     model: str = typer.Option(None, "--model", "-m"),
     api_key: str = typer.Option(None, "--api-key", "-k"),
@@ -323,7 +330,7 @@ def show_config(
             base_url=base_url,
             model=model,
             api_key=api_key,
-            dotenv=Path.cwd() / ".env",
+            dotenv=env_file or Path.cwd() / ".env",
         )
     except ConfigError as exc:
         err.print(f"[bold red]error[/bold red] {exc}")
@@ -360,12 +367,18 @@ def batch(
         "-p",
         help=f"Preset base URL: {', '.join(PROVIDERS)}. --base-url wins.",
     ),
+    env_file: Path = typer.Option(
+        None, "--env-file", help="Dotenv file to read instead of ./.env."
+    ),
     temperature: float = typer.Option(None, "--temperature", "-t", min=0.0, max=2.0),
     max_tokens: int = typer.Option(None, "--max-tokens", min=256, max=16000),
     timeout: float = typer.Option(None, "--timeout", min=1.0, max=600.0),
     retries: int = typer.Option(None, "--retries", min=0, max=8),
     seed: int = typer.Option(None, "--seed"),
     usage: bool = typer.Option(False, "--usage", help="Print token totals to stderr."),
+    concurrency: int = typer.Option(
+        4, "--concurrency", "-j", min=1, max=8, help="Profiles in flight at once."
+    ),
     no_color: bool = typer.Option(False, "--no-color"),
 ) -> None:
     """Generate one exercise per profile in a directory."""
@@ -394,32 +407,26 @@ def batch(
             retries=retries,
             max_tokens=max_tokens,
             seed=seed,
-            dotenv=Path.cwd() / ".env",
+            dotenv=env_file or Path.cwd() / ".env",
         )
     except PretextError as exc:
         err.print(f"[bold red]error[/bold red] {exc}")
         raise typer.Exit(1) from exc
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    client = Client(settings)
     suffix = {"markdown": "md", "json": "json", "rich": "txt"}[fmt.value]
     failures: list[tuple[str, str]] = []
     totals = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    done = 0
 
-    for index, path in enumerate(profiles, start=1):
-        label = f"[cyan]{index}/{len(profiles)}[/cyan] {path.name}"
+    def run_one(path: Path) -> tuple[Path, str | None, dict[str, int]]:
         try:
             prof = load_profile(path)
+            client = Client(settings)
             simulation = client.generate(prof, channel=None, extra=extra)
         except PretextError as exc:
-            failures.append((path.name, str(exc).splitlines()[0]))
-            err.print(f"{label} [red]failed[/red] {failures[-1][1]}")
-            continue
+            return path, str(exc).splitlines()[0], {}
 
-        for key in totals:
-            totals[key] += (client.last_usage or {}).get(key, 0)
-
-        target = out_dir / f"{path.stem}.{suffix}"
         if fmt is OutputFormat.json:
             body = render.to_json(simulation, prof, sections=selected)
         elif fmt is OutputFormat.markdown:
@@ -429,8 +436,23 @@ def batch(
             with recording.capture() as captured:
                 render.render_simulation(simulation, prof, recording, sections=selected)
             body = captured.get()
-        target.write_text(body, encoding="utf-8")
-        err.print(f"{label} [green]ok[/green] {target.name}")
+        _write_out(out_dir / f"{path.stem}.{suffix}", body)
+        return path, None, client.last_usage or {}
+
+    workers = max(1, min(concurrency, len(profiles)))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(run_one, path): path for path in profiles}
+        for future in as_completed(futures):
+            path, error, used = future.result()
+            done += 1
+            label = f"[cyan]{done}/{len(profiles)}[/cyan] {path.name}"
+            if error is not None:
+                failures.append((path.name, error))
+                err.print(f"{label} [red]failed[/red] {error}")
+                continue
+            for key in totals:
+                totals[key] += used.get(key, 0)
+            err.print(f"{label} [green]ok[/green] {path.stem}.{suffix}")
 
     err.print()
     err.print(f"wrote {len(profiles) - len(failures)}/{len(profiles)} to {out_dir}")
@@ -460,6 +482,9 @@ def doctor(
         "-p",
         help=f"Preset base URL: {', '.join(PROVIDERS)}. --base-url wins.",
     ),
+    env_file: Path = typer.Option(
+        None, "--env-file", help="Dotenv file to read instead of ./.env."
+    ),
     full: bool = typer.Option(False, "--full", help="Also run one real simulation."),
     no_color: bool = typer.Option(False, "--no-color"),
 ) -> None:
@@ -478,7 +503,7 @@ def doctor(
             base_url=base_url,
             model=model,
             api_key=api_key,
-            dotenv=Path.cwd() / ".env",
+            dotenv=env_file or Path.cwd() / ".env",
         )
         record("configuration", "pass", f"{settings.base_url} · {settings.model}")
     except PretextError as exc:

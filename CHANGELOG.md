@@ -4,6 +4,11 @@ All notable changes. This project follows semantic versioning.
 
 ## Unreleased
 
+- `batch` runs profiles concurrently (`-j`, default 4)
+- `--env-file` selects another dotenv, for running two providers side by side
+- Upstream provider error detail is surfaced instead of "Provider returned error"
+- Corpus entries for two OpenRouter models; socket-level transport tests
+
 - A corrupt `profile` inside a saved response reports field errors instead of a
   traceback
 - `doctor` suggests close model names, and shows the first schema errors verbatim

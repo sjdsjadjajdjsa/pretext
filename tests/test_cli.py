@@ -611,3 +611,41 @@ def test_example_out_creates_parents(tmp_path):
     result = run("example", "--out", target)
     assert result.exit_code == 0
     assert target.exists()
+
+
+def test_env_file_flag(tmp_path):
+    dotenv = tmp_path / "alt.env"
+    dotenv.write_text("PRETEXT_API_KEY=from-alt\nPRETEXT_MODEL=alt-model\n", encoding="utf-8")
+    result = RUNNER.invoke(cli.app, ["config", "--env-file", str(dotenv)])
+    assert result.exit_code == 0
+    assert "alt-model" in flat_out(result)
+
+
+def test_env_file_missing_is_ok(tmp_path, profile):
+    result = run(
+        "generate", profile, "--api-key", "k", "--env-file", tmp_path / "none.env", "--dry-run"
+    )
+    assert result.exit_code == 0
+
+
+def test_batch_concurrency_writes_everything(tmp_path):
+    target = tmp_path / "out"
+    result = run("batch", FIXTURE_DIR, "--out-dir", target, "--api-key", "sk-x", "-j", "4")
+    assert result.exit_code == 0
+    assert len(list(target.glob("*.md"))) == len(list(FIXTURE_DIR.glob("*.yaml")))
+
+
+def test_batch_concurrency_is_bounded(tmp_path, monkeypatch):
+    seen: list[int] = []
+
+    class Slow(StubClient):
+        def generate(self, profile, *, channel=None, extra=None):
+            seen.append(1)
+            return simulation()
+
+    def simulation():
+        return Simulation.model_validate(PAYLOAD)
+
+    monkeypatch.setattr(cli, "Client", Slow)
+    run("batch", FIXTURE_DIR, "--out-dir", tmp_path, "--api-key", "sk-x", "-j", "2")
+    assert seen

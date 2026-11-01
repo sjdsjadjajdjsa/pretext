@@ -67,3 +67,11 @@ def test_difficulty_bar(pair):
     with out.capture() as captured:
         render.render_simulation(simulation, profile, out)
     assert f"{simulation.difficulty}/5" in captured.get()
+
+
+def test_narrow_terminal_does_not_crash(pair):
+    profile, simulation = pair
+    out = render.console(no_color=True, width=40)
+    with out.capture() as captured:
+        render.render_simulation(simulation, profile, out)
+    assert simulation.escalation_path[0].action.split()[0] in captured.get()

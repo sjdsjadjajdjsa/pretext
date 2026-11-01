@@ -75,10 +75,20 @@ def run(*args):
     return RUNNER.invoke(cli.app, [str(a) for a in args])
 
 
+def flat(result) -> str:
+    """Output with wrapping removed, because Rich reflows to the runner's width."""
+
+    return " ".join(result.output.split())
+
+
+def flat_out(result) -> str:
+    return " ".join(result.stdout.split())
+
+
 def test_validate_ok(profile):
     result = run("validate", profile)
     assert result.exit_code == 0
-    assert "Profile OK" in result.stdout
+    assert "Profile OK" in flat_out(result)
 
 
 def test_validate_invalid(tmp_path):
@@ -86,13 +96,13 @@ def test_validate_invalid(tmp_path):
     path.write_text("name: x\n", encoding="utf-8")
     result = run("validate", path)
     assert result.exit_code == 1
-    assert "role" in result.output
+    assert "role" in flat(result)
 
 
 def test_validate_missing_file(tmp_path):
     result = run("validate", tmp_path / "nope.yaml")
     assert result.exit_code == 1
-    assert "cannot read profile" in result.output
+    assert "cannot read profile" in flat(result)
 
 
 def test_example_prints_yaml():
@@ -112,25 +122,26 @@ def test_dry_run_skips_api(profile):
     result = run("generate", profile, "--api-key", "sk-x", "--dry-run")
     assert result.exit_code == 0
     assert StubClient.calls == []
-    assert "dry run" in result.output
+    assert "dry run" in flat(result)
     assert '"messages"' in result.stdout
-    assert "Key" in result.output
+    assert "Key" in flat(result)
 
 
 def test_dry_run_without_key_fails(profile):
     result = run("generate", profile, "--dry-run")
     assert result.exit_code == 1
-    assert "no API key" in result.output
+    assert "no API key" in flat(result)
 
 
 def test_generate_renders(profile):
     result = run("generate", profile, "--api-key", "sk-x", "--base-url", "https://api.test/v1")
     assert result.exit_code == 0
-    assert "Northwind Logistics" in result.stdout
-    assert "Escalation path" in result.stdout
-    assert "Red flags for defenders" in result.stdout
+    assert "Dana" in flat_out(result)
+    assert "Payroll" in flat_out(result)
+    assert "Escalation" in flat_out(result)
+    assert "Red flags" in flat_out(result)
     assert "Authorized training" not in result.stdout
-    assert "Fictional exercise." in result.stdout
+    assert "Fictional exercise." in flat_out(result)
     assert "! endpoint is not HTTPS" not in result.stdout
 
 
@@ -150,7 +161,7 @@ def test_generate_json(profile):
 def test_generate_markdown(profile):
     result = run("generate", profile, "--api-key", "sk-x", "--format", "markdown")
     assert result.exit_code == 0
-    assert "# Social-engineering simulation: Dana Iyer" in result.stdout
+    assert "# Social-engineering simulation: Dana Iyer" in flat_out(result)
     assert "2. **Urgency**" in result.stdout
 
 
@@ -172,7 +183,7 @@ def test_generate_api_error(profile):
     StubClient.error = APIError("HTTP 401: bad key")
     result = run("generate", profile, "--api-key", "sk-x")
     assert result.exit_code == 1
-    assert "bad key" in result.output
+    assert "bad key" in flat(result)
 
 
 def test_generate_rejects_bad_channel(profile):
@@ -190,7 +201,7 @@ def test_config_masks_key():
 def test_config_missing_key():
     result = RUNNER.invoke(cli.app, ["config"])
     assert result.exit_code == 1
-    assert "no API key" in result.output
+    assert "no API key" in flat(result)
 
 
 def test_version_flag():
@@ -202,7 +213,7 @@ def test_version_flag():
 def test_usage_flag_prints_tokens(profile):
     result = run("generate", profile, "--api-key", "sk-x", "--usage", "--format", "json")
     assert result.exit_code == 0
-    assert "tokens:" in result.output
+    assert "tokens:" in flat(result)
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "responses" / "dana.json"
@@ -211,10 +222,10 @@ FIXTURE = Path(__file__).parent / "fixtures" / "responses" / "dana.json"
 def test_replay_wrapped_response(profile, tmp_path):
     result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(FIXTURE), "-f", "markdown"])
     assert result.exit_code == 0
-    assert "Social-engineering simulation" in result.stdout
-    assert "Escalation path" in result.stdout
+    assert "Social-engineering simulation" in flat_out(result)
+    assert "Escalation" in flat_out(result)
     assert StubClient.calls == []
-    assert "replayed" in result.output
+    assert "replayed" in flat(result)
 
 
 def test_replay_needs_no_key(tmp_path):
@@ -229,7 +240,7 @@ def test_replay_requires_profile_when_bare(tmp_path):
     bare.write_text(json.dumps(data["simulation"]), encoding="utf-8")
     result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(bare)])
     assert result.exit_code == 1
-    assert "pass a PROFILE too" in result.output
+    assert "pass a PROFILE too" in flat(result)
 
 
 def test_replay_bare_with_profile_argument(tmp_path, profile):
@@ -238,7 +249,7 @@ def test_replay_bare_with_profile_argument(tmp_path, profile):
     bare.write_text(json.dumps(data["simulation"]), encoding="utf-8")
     result = RUNNER.invoke(cli.app, ["generate", str(profile), "--from-file", str(bare)])
     assert result.exit_code == 0
-    assert "Escalation path" in result.stdout
+    assert "Escalation" in flat_out(result)
 
 
 def test_replay_chat_body(tmp_path):
@@ -256,7 +267,7 @@ def test_replay_rejects_non_json(tmp_path):
     bad.write_text("nope", encoding="utf-8")
     result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(bad)])
     assert result.exit_code == 1
-    assert "not JSON" in result.output
+    assert "is not JSON" in flat(result)
 
 
 def test_replay_rejects_schema_violation(tmp_path):
@@ -264,10 +275,10 @@ def test_replay_rejects_schema_violation(tmp_path):
     bad.write_text(json.dumps({"pretext": "short"}), encoding="utf-8")
     result = RUNNER.invoke(cli.app, ["generate", "--from-file", str(bad)])
     assert result.exit_code == 1
-    assert "invalid response" in result.output
+    assert "invalid response" in flat(result)
 
 
 def test_no_profile_and_no_file_is_usage_error():
     result = RUNNER.invoke(cli.app, ["generate"])
     assert result.exit_code == 2
-    assert "pass a PROFILE or --from-file" in result.output
+    assert "pass a PROFILE or --from-file" in flat(result)

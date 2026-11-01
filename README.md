@@ -50,13 +50,12 @@ complete Markdown export; [`docs/demo.png`](docs/demo.png) is the terminal view.
 ## Install
 
 ```sh
-uvx pretext-sim generate persona.yaml     # no install
-pipx install pretext-sim                  # or a permanent command
+uvx --from pretext-sim pretext generate persona.yaml     # no install
+pipx install pretext-sim                                 # or a permanent command
 ```
 
-Python 3.11+. The distribution is `pretext-sim`; the command is `pretext`. Until the
-first PyPI upload lands, install from a clone: `uv sync --extra dev`, then
-`uv run pretext`.
+Python 3.11+. The distribution is `pretext-sim`; the command is `pretext`, so `uvx`
+needs `--from`. For the source tree: `uv sync --extra dev` then `uv run pretext`.
 
 ## Quickstart
 

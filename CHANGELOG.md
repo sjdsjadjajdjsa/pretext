@@ -31,6 +31,10 @@ All notable changes. This project follows semantic versioning.
 - `--dry-run --out` writes the prompt instead of ignoring `--out`
 - Verified against Venice (venice-uncensored-1-2, qwen3-235b-a22b-instruct)
 
+## 0.3.3
+
+- Correct install instructions: `uvx` needs `--from pretext-sim`
+
 ## 0.3.2
 
 - Dropped Python 3.10 (end of life) so the lockfile can use a patched `filelock`

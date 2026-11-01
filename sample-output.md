@@ -3,40 +3,43 @@
 - **Role:** Senior Payroll Analyst at Northwind Logistics
 - **Communication style:** Brisk and formal, mixes payroll shorthand with chatty asides, mirrors whoever she is replying to
 - **Difficulty:** 3/5
-- **Objective:** Obtain Dana's access to the bank-change portal for unauthorized modifications.
+- **Objective:** Gain unauthorized access to Dana's payroll systems by convincing her to change bank details via a forged request.
 
 ## Pretext narrative
 
-The attacker conducts research on Northwind Logistics and discovers a recent press release about a new payroll system implementation. Leveraging this information, the attacker forges an email address that closely mimics that of Marta Kwan (marta.k@northwindlogistics.com) and claims to be reaching out regarding some urgent updates. The attacker emphasizes that, as the new Senior Payroll Analyst, it is crucial for Dana Iyer to assist in the verification of the new banking details for payroll processing. The attacker incorporates a fake ticket number (TICKET-4562) from the IT department, suggesting that an issue has been flagged that requires immediate attention. By framing the message around a critical payroll update, the attacker makes Dana feel responsible and pressed for time, effectively manipulating her into compliance.
+The attacker poses as Marta Kwan, Dana's manager, claiming that there has been a last-minute adjustment needed for payroll processing. They reference a recent communication from the finance department regarding Q3 adjustments, which the attacker has accessed through an internal report. To add credibility, the attacker forges a company email from Marta's address indicating urgency. The attacker plans to reach out to Dana today since the deadline for the payroll change is imminent, leveraging Dana's newness to the team and her current uncertainty over processes to push for a quick response. The attacker also mentions that the finance team has flagged discrepancies that need immediate resolution, making it essential for Dana to act quickly and follow the new instructions provided.
 
 ## Opening message
 
-**Subject:** Payroll Inquiry: Action Needed Today
+**Subject:** Payroll Update Required for Q3 Adjustments
 
-Hi Dana, this is Marta Kwan (marta.k@northwindlogistics.com). I need your help with TICKET-4562. We need to verify the new banking details for payroll processing before the end of the day due to the recent system changes. Can you check the bank-change portal and confirm the new entries? Let me know if you have any questions.
+Hi Dana, this is Marta Kwan from People Operations. I need you to update the bank details for payroll processing due to some urgent adjustments flagged by finance. Please check your email for the invoice reference #Q3-2023-128 and make the necessary changes in the bank-change portal by the end of the day. Thanks for your quick attention to this!
 
 ## Escalation path
 
-1. **email** · Send a follow-up email detailing urgency. _(goal: Get Dana to confirm the bank details are updated by the end of the day.)_
-   - Artifact: A screenshot of the supposed bank-change portal showing incorrect details.
-2. **phone** · Call Dana to discuss the bank details. _(goal: Pressure Dana into making the changes immediately.)_
-   - Artifact: A call log showing the call was made from a number mimicking the payroll hotline.
-3. **chat** · Send a chat message claiming to be from IT. _(goal: Reinforce urgency by introducing a new IT contact who corroborates the need for changes.)_
-   - Artifact: A message from 'IT Support' with a link to a fake IT support page.
-4. **in_person** · Suggest a quick in-person meeting. _(goal: Obtain verbal confirmation from Dana about the bank changes.)_
-   - Artifact: A calendar invite for a 'quick sync' to discuss payroll updates.
+1. **email** · Send a follow-up email _(goal: Reiterate urgency and introduce a new deadline)_
+   - Artifact: Invoice reference #Q3-2023-128
+2. **phone** · Call Dana to confirm the changes _(goal: Ensure Dana is taking action and address any doubts)_
+   - Artifact: Caller ID displays Marta's number
+3. **chat** · Send a chat message via the company platform _(goal: Request confirmation of the updated bank details)_
+   - Artifact: Chat transcript showing urgency
+4. **in_person** · Arrange a quick meeting to finalize the changes _(goal: Get Dana to verbally confirm the updates and build trust)_
+   - Artifact: Calendar invite for a 'quick sync' meeting
 
 ## Red flags for defenders
 
-1. **Email address discrepancy**
-   - Why it matters: The attacker used a slightly altered email address that mimics Marta's, which could indicate a phishing attempt.
-   - Defender action: Verify the sender's email address against known contacts before responding.
-2. **Unusual urgency around bank changes**
-   - Why it matters: The request to finalize banking details is unusually urgent, which is not standard practice.
-   - Defender action: Consult with peers or supervisors about typical response times for such requests.
-3. **Inconsistencies in IT support communication**
-   - Why it matters: The IT support message may not come from a verified internal source.
-   - Defender action: Cross-check IT requests with the IT department directly before taking action.
+1. **Inconsistencies in communication style**
+   - Why it matters: If Marta typically communicates in a more personable tone, the abruptness may indicate something is off.
+   - Defender action: Verify the message with Marta directly before acting.
+2. **Unfamiliarity with process**
+   - Why it matters: Dana is still new to the team and may not be clear on how to verify requests.
+   - Defender action: Consult with a trusted colleague about the process before proceeding.
+3. **Urgent deadline without prior notice**
+   - Why it matters: Requests for immediate action without prior context could be a red flag.
+   - Defender action: Request additional details and context for the sudden urgency.
+4. **Forcing a quick response**
+   - Why it matters: High-pressure tactics are often used in social engineering to create confusion.
+   - Defender action: Take a moment to verify the request and seek clarity.
 
 ---
 

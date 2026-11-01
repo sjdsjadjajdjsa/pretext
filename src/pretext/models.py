@@ -95,6 +95,14 @@ class EscalationStep(BaseModel):
         description="Concrete lure or prop used at this stage, if any.",
     )
 
+    @field_validator("artifact", mode="before")
+    @classmethod
+    def _trim_artifact(cls, value: Any) -> Any:
+        if not isinstance(value, str):
+            return value
+        trimmed = value.strip()
+        return trimmed if len(trimmed) <= 300 else f"{trimmed[:297].rstrip()}..."
+
     @field_validator("stage", mode="before")
     @classmethod
     def _coerce_stage(cls, value: Any) -> Any:

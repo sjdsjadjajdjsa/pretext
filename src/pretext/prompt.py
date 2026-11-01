@@ -50,8 +50,11 @@ Rules:
   verbatim, including the sending address or the number displayed. Mirror the
   communication style in sentence length and register, and carry at least one
   artifact. For phone, write the spoken opening including the self-introduction.
-  No stage directions, no "description of a message", and no "Subject:" or "From:"
-  header lines (the subject lives in "subject_line"); work the sending address or
+  Open on the ask, and name the sender by name and role in the first line on every
+  channel, not only phone; then the request, never a summary clause ("sent from X,
+  referencing Y") or past-tense narration of what the message does. No stage
+  directions, no "description of a message", and no "Subject:" or "From:" header
+  lines (the subject lives in "subject_line"); work the sending address or
   the displayed number into the body text instead. Set "subject_line" to
   something an insider would recognise, never "Urgent:" plus a topic.
 - "escalation_path": 3-6 stages that follow the opening, at least 3 distinct

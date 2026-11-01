@@ -15,63 +15,71 @@
     "notes": "New enough to the team to be unsure of process, still learning who owns what."
   },
   "simulation": {
-    "pretext": "The attacker impersonates Marta Kwan, Dana’s direct supervisor at Northwind Logistics. They gather information from a recent company press release about a payroll system upgrade, noting that changes in bank account details are required for compliance. Knowing that Dana is new and still learning the ropes of the payroll process, the attacker registers a fake Help Desk ticket indicating an urgent need to verify bank details to ensure no disruption in payroll processing. Today is targeted, as it is the end of the month and payroll deadlines are approaching. The attacker reaches out to Dana, claiming that this is a necessary step to facilitate the upcoming payroll run, leveraging Dana's position to create urgency and pressure to comply with the request.",
-    "opening_message": "Hi Dana, this is Marta Kwan from People Operations. I wanted to touch base regarding the recent Help Desk ticket (Ticket #0923) you submitted. We need to confirm your bank details for tomorrow’s payroll processing. Could you please provide me with your login credentials for the bank-change portal at your earliest convenience? It’s crucial to get this sorted before the cutoff.",
-    "subject_line": "Update Needed for Payroll Processing",
+    "pretext": "The attacker poses as Marta Kwan, Dana's manager, claiming that a payroll ticket submitted last week (Ticket #4523) has a critical issue that requires immediate attention. The attacker has harvested Dana's email signature and recent correspondence from the payroll mailbox, allowing them to impersonate Marta convincingly. The attacker concocts a scenario where a vendor has flagged a potential payroll discrepancy, emphasizing that Dana’s prompt action is needed to ensure compliance and avoid delays in payroll processing. The urgency is heightened by mentioning an upcoming pay period, which Dana is likely to be focused on as a new team member. The attacker sends an email under the guise of Marta, using a similar writing style, and indicates that Dana needs to verify the bank account details for a specific contractor to expedite the correction process.",
+    "opening_message": "Dana, this is Marta Kwan. We’ve got an issue regarding the payroll adjustment for Contractor #145. I need you to verify the bank account details for this contractor as soon as possible. Please check the details in Workday and send me the updated information. My direct line is 555-0123 if you need to discuss it further.",
+    "subject_line": "Request for Payroll Adjustment - Ticket #4523",
     "escalation_path": [
       {
         "stage": 1,
-        "channel": "phone",
-        "action": "Call Dana to follow up.",
-        "goal": "Reinforce urgency and ask for confirmation of bank details.",
-        "artifact": "Ticket #0923"
+        "channel": "email",
+        "action": "Request confirmation of bank details",
+        "goal": "Ensure the contractor's information is correct and up-to-date.",
+        "artifact": "Email from Marta Kwan with urgency about the payroll adjustment."
       },
       {
         "stage": 2,
-        "channel": "email",
-        "action": "Send a follow-up email from a spoofed address that looks like IT support.",
-        "goal": "Request confirmation and specify a deadline for compliance.",
-        "artifact": "Email from support@northwindlogistics.com"
+        "channel": "phone",
+        "action": "Follow up with a call to discuss the contractor details.",
+        "goal": "Pressure Dana to act quickly and confirm the data verbally.",
+        "artifact": "Phone call from 555-0123, mimicking Marta's number."
       },
       {
         "stage": 3,
-        "channel": "chat",
-        "action": "Use the company chat to message Dana directly.",
-        "goal": "Pressure Dana by stating that payroll is dependent on her prompt response.",
-        "artifact": "Chat message referencing payroll cutoff time."
+        "channel": "sms",
+        "action": "Send a reminder text about the urgent need for the bank details.",
+        "goal": "Create a sense of urgency and remind Dana of the upcoming pay period.",
+        "artifact": "Text from 555-0123 with a reminder about the pay schedule."
       },
       {
         "stage": 4,
         "channel": "in_person",
-        "action": "Approach Dana in the office.",
-        "goal": "Create a sense of urgency by stating that HR is waiting on the confirmation.",
-        "artifact": null
+        "action": "Approach Dana in the office to discuss the issue directly.",
+        "goal": "Use face-to-face interaction to build trust and urgency.",
+        "artifact": "A printed note of the contractor's details handed to Dana."
+      },
+      {
+        "stage": 5,
+        "channel": "chat",
+        "action": "Use internal chat to ask for an immediate update on the information.",
+        "goal": "Gain immediate access to bank details via informal chat.",
+        "artifact": "Chat message from 'Marta Kwan' asking for the latest update."
       }
     ],
     "red_flags": [
       {
-        "title": "Unexpected urgency from a supervisor",
-        "why_it_matters": "Marta rarely requests immediate actions and typically follows up through scheduled meetings.",
-        "defender_action": "Verify the request with Marta directly via her known contact information."
+        "title": "Unexpected urgency from management",
+        "why_it_matters": "Marta usually allows time for verification; this pressure is unusual.",
+        "defender_action": "Verify the request with Marta directly before taking any action."
       },
       {
-        "title": "Help Desk ticket reference is fabricated",
-        "why_it_matters": "No record of the ticket in the actual Help Desk system should raise suspicion.",
-        "defender_action": "Check the Help Desk system for the referenced ticket number."
+        "title": "Mismatch in communication style",
+        "why_it_matters": "The email feels less formal than typical messages from Marta.",
+        "defender_action": "Compare the email's tone and structure with previous communications."
       },
       {
-        "title": "Spoofed email address",
-        "why_it_matters": "The attacker uses an address that closely resembles the actual IT support address but has subtle differences.",
-        "defender_action": "Hover over the sender's email to check the domain carefully."
-      },
-      {
-        "title": "Pressure in communication style",
-        "why_it_matters": "The attacker mirrors Dana's brisk and formal style but may use slightly more aggressive language.",
-        "defender_action": "Identify inconsistencies in tone when comparing to previous communications."
+        "title": "Request for sensitive information",
+        "why_it_matters": "Marta typically handles contractor bank details through secure channels.",
+        "defender_action": "Confirm the legitimacy of the request through an alternate communication method."
       }
     ],
     "difficulty": 3,
-    "objective": "Gain access to Dana's bank-change portal credentials."
+    "objective": "Obtain sensitive information for a fraudulent payroll adjustment."
   },
+  "sections": [
+    "pretext",
+    "opening",
+    "escalation",
+    "red_flags"
+  ],
   "disclaimer": "Fictional exercise. Domains, names, and systems are invented. Use against authorized targets only."
 }

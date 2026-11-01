@@ -9,3 +9,4 @@ dist/
 .env
 .crush/
 .empryo/
+.coverage

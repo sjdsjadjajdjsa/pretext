@@ -38,6 +38,11 @@ def test_system_prompt_states_core_rules():
     assert "fictional" in SYSTEM_PROMPT.lower()
 
 
+def test_system_prompt_forbids_narrated_openings():
+    assert "Open on the ask" in SYSTEM_PROMPT
+    assert "summary clause" in SYSTEM_PROMPT
+
+
 def test_system_prompt_lists_every_channel():
     from pretext.models import Channel
 

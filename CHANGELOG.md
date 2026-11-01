@@ -8,7 +8,10 @@ All notable changes. This project follows semantic versioning.
   call and no key
 - `--sections` renders a subset of the exercise
 - `--usage` reports token counts on stderr
+- Openings must land on the ask and identify the sender; "sent from X, referencing Y"
+  narration rejected in the prompt
 - Opening-message validator strips `Subject:`/`From:` header lines the model repeats
+- Overlong stage artifacts are trimmed instead of failing the whole run
 - Prompt now forbids the attacker impersonating the persona, requires an in-body
   sending address, distinct non-adjacent channels, and a new prop per stage
 - Fixture personas, prompt invariant tests, and render tests over a captured response

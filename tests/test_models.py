@@ -222,3 +222,17 @@ def test_profile_invalid_yaml(tmp_path):
 def test_profile_from_json_invalid():
     with pytest.raises(ProfileError, match="invalid profile JSON"):
         profile_from_json('{"name": "x"}')
+
+
+def test_long_artifact_is_trimmed():
+    from pretext.models import EscalationStep
+
+    step = EscalationStep(
+        stage=1,
+        channel="email",
+        action="Send the notice as the opening touch.",
+        goal="Open a thread",
+        artifact="x" * 400,
+    )
+    assert len(step.artifact) <= 300
+    assert step.artifact.endswith("...")

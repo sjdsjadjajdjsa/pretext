@@ -87,7 +87,9 @@ resolves.
 - `extract_json` tolerates code fences, prose, and list-shaped `content` parts
   because proxies vary. Keep the fallback: endpoints may ignore
   `response_format: json_object`.
-- Empty model content is an error, not an empty simulation.
+- Empty model content is an error, not an empty simulation. Overlong artifacts are
+  trimmed to 300 chars in a `mode="before"` validator; constraints run before
+  `mode="after"` validators, so trim early or the run fails.
 - `--dry-run` still resolves settings, so it needs a key; it prints the prompt to
   stdout via `typer.echo` (unwrapped) and exits 0. `validate` needs no key.
 - File output with the default rich format renders into a `Console.capture()`

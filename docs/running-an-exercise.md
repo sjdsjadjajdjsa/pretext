@@ -39,6 +39,8 @@ pretext generate persona.yaml --channel email -f markdown -o exercise.md
   something trainees read on day one.
 - Keep the **red flags** to yourself until the debrief.
 - Note the time each stage lands. Response time is the metric that matters.
+- A packet of several personas runs four at a time; use `-j 1` when you want the
+  requests strictly ordered, or `-j 8` for a deadline.
 
 ## Scoring
 

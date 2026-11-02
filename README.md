@@ -37,7 +37,7 @@ does not depend on whoever wrote the scenario remembering to add it.
 | Section | Content |
 | ------- | ------- |
 | Pretext narrative | The operation, attacker-side: harvested detail, forged artifact, why contact lands today |
-| Opening message | Usable verbatim, in the sender's voice, carrying the sending address and one lure |
+| Opening message | Usable verbatim, in the sender's voice, opening on the ask with the sending address in the body |
 | Escalation path | 3-6 stages across channels, each handing over a new prop or introducing a new person |
 | Red flags | Observable tells tied to this exercise, each with a defender action, including one only clear in hindsight |
 
@@ -180,6 +180,9 @@ profile.yaml ─> Profile ─> prompt ─> POST /chat/completions ─> extract J
                                                                     │
      rich | markdown | json  <─ render <─ validate <────────────────┘
 ```
+
+These are prompt-enforced promises, not guarantees: a weak model can still return a
+thin opener, which is what the corpus and `doctor --full` are for.
 
 Model output is untrusted. It is parsed out of fences or prose, validated against a
 strict pydantic schema, and only then rendered. Escalation stages must run 1..n with

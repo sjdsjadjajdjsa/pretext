@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <rect width="1280" height="640" fill="#0d1117"/>
+  <rect x="0" y="0" width="1280" height="6" fill="#22d3ee"/>
+  <g font-family="DejaVu Sans Mono, monospace">
+    <text x="80" y="150" fill="#22d3ee" font-size="34">~/pretext</text>
+    <text x="80" y="200" fill="#8b949e" font-size="24">$ pretext generate persona.yaml --dry-run</text>
+    <text x="80" y="290" fill="#f0f6fc" font-size="64" font-weight="bold">Turn a persona into</text>
+    <text x="80" y="364" fill="#f0f6fc" font-size="64" font-weight="bold">a runnable exercise</text>
+    <text x="80" y="436" fill="#8b949e" font-size="26">pretext narrative · opening message · escalation path · red flags</text>
+    <g font-size="24">
+      <rect x="80" y="484" width="266" height="50" rx="8" fill="#161b22" stroke="#30363d"/>
+      <text x="96" y="517" fill="#22d3ee">schema-validated</text>
+      <rect x="362" y="484" width="237" height="50" rx="8" fill="#161b22" stroke="#30363d"/>
+      <text x="378" y="517" fill="#22d3ee">offline replay</text>
+      <rect x="615" y="484" width="237" height="50" rx="8" fill="#161b22" stroke="#30363d"/>
+      <text x="631" y="517" fill="#22d3ee">any OpenAI API</text>
+    </g>
+    <text x="80" y="596" fill="#6e7681" font-size="20">for authorized security training only</text>
+  </g>
+</svg>

@@ -127,8 +127,11 @@ and never abort the run on the first failure.
 of `render_simulation` with `sections=("pretext", "opening", "escalation")` over the
 Dana fixture. Convert with `rsvg-convert -z 1.2`, then `magick -trim +repage -strip`.
 Regenerate after any render change or the README advertises stale output.
-`docs/social.png` is a hand-written SVG render; GitHub exposes no REST endpoint for
-the social preview (404 on every version), so it is uploaded in Settings → General.
+`docs/social.svg` is the source for the social preview; chip widths are computed from
+the label length (monospace advance ~0.61em) rather than hand-guessed, and it renders
+with `rsvg-convert docs/social.svg -o docs/social.png`. GitHub exposes no REST
+endpoint for the social preview (404 on every version), so it is uploaded in
+Settings → General.
 
 ## Repo hygiene
 
